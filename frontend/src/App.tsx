@@ -3,6 +3,10 @@ import type { FormEvent } from 'react'
 import axios from 'axios'
 import { api, errorMessage } from './api'
 import type { AppUser } from './api'
+import { Navigation } from './components/Navigation'
+import type { Page } from './components/Navigation'
+import { PropertiesPage } from './pages/PropertiesPage'
+import { ServiceProvidersPage } from './pages/ServiceProvidersPage'
 
 
 export default function App() {
@@ -14,6 +18,7 @@ export default function App() {
   const [message, setMessage] = useState('')
   const [ready, setReady] = useState(false)
   const [busy, setBusy] = useState(false)
+  const [page, setPage] = useState<Page>('properties')
 
   async function checkHealth() {
     setHealth('A verificar a API...')
@@ -118,14 +123,25 @@ export default function App() {
       {!ready ? (
         <p>A verificar a sessão...</p>
       ) : user ? (
-        <section>
-          <h2>Olá, {user.name}</h2>
-          <p>{user.email}</p>
-          <p>Perfil: {user.role}</p>
-          <button disabled={busy} onClick={() => void handleLogout()}>
-            {busy ? 'A terminar...' : 'Sair'}
-          </button>
-        </section>
+        <>
+          <section>
+            <h2>Olá, {user.name}</h2>
+            <p>{user.email}</p>
+            <p>Perfil: {user.role}</p>
+            <button disabled={busy} onClick={() => void handleLogout()}>
+              {busy ? 'A terminar...' : 'Sair'}
+            </button>
+          </section>
+          <hr />
+          {user.role === 'prestador' ? (
+            <p>Esta área é reservada a administradores e supervisores.</p>
+          ) : (
+            <>
+              <Navigation current={page} onNavigate={setPage} />
+              {page === 'properties' ? <PropertiesPage /> : <ServiceProvidersPage />}
+            </>
+          )}
+        </>
       ) : (
         <form onSubmit={handleLogin}>
           <h2>Entrar</h2>
