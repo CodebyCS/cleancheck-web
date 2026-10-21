@@ -1,0 +1,32 @@
+.field select {
+  padding: 8px 10px;
+  border: 1px solid var(--border, #d4d4d8);
+  border-radius: 6px;
+  font: inherit;
+}
+
+.ical-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.ical-table {
+  border-collapse: collapse;
+  margin: 8px 0 16px;
+  text-align: left;
+}
+
+.ical-table th,
+.ical-table td {
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--border, #d4d4d8);
+}
+
+.ical-table th {
+  font-weight: 600;
+}
+
+.ical-warnings {
+  text-align: left;
+}
