@@ -1,6 +1,6 @@
 import './components.css'
 
-export type Page = 'properties' | 'serviceProviders'
+export type Page = 'properties' | 'serviceProviders' | 'icalImport'
 
 type NavigationProps = {
   current: Page
@@ -10,6 +10,7 @@ type NavigationProps = {
 const items: { page: Page; label: string }[] = [
   { page: 'properties', label: 'Imóveis' },
   { page: 'serviceProviders', label: 'Prestadores' },
+  { page: 'icalImport', label: 'Reservas iCal' },
 ]
 
 export function Navigation({ current, onNavigate }: NavigationProps) {
