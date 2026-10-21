@@ -7,6 +7,7 @@ import { Navigation } from './components/Navigation'
 import type { Page } from './components/Navigation'
 import { PropertiesPage } from './pages/PropertiesPage'
 import { ServiceProvidersPage } from './pages/ServiceProvidersPage'
+import { IcalImportPage } from './pages/IcalImportPage'
 
 
 export default function App() {
@@ -138,7 +139,9 @@ export default function App() {
           ) : (
             <>
               <Navigation current={page} onNavigate={setPage} />
-              {page === 'properties' ? <PropertiesPage /> : <ServiceProvidersPage />}
+              {page === 'properties' && <PropertiesPage />}
+              {page === 'serviceProviders' && <ServiceProvidersPage />}
+              {page === 'icalImport' && <IcalImportPage />}
             </>
           )}
         </>
