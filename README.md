@@ -48,7 +48,7 @@ A API Laravel deve estar em execução para utilizar as funcionalidades que depe
 ### 1. Clonar o repositório
 
 ```bash
-git https://github.com/CodebyCS/cleancheck-web.git
+git clone https://github.com/CodebyCS/cleancheck-web.git
 cd cleancheck-web/frontend
 ```
 
