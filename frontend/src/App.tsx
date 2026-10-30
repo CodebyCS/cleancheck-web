@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
 import axios from 'axios'
 import { api, errorMessage } from './api'
@@ -8,6 +8,7 @@ import type { Page } from './components/Navigation'
 import { PropertiesPage } from './pages/PropertiesPage'
 import { ServiceProvidersPage } from './pages/ServiceProvidersPage'
 import { IcalImportPage } from './pages/IcalImportPage'
+import { TasksPage } from './pages/TasksPage'
 
 
 export default function App() {
@@ -20,6 +21,8 @@ export default function App() {
   const [ready, setReady] = useState(false)
   const [busy, setBusy] = useState(false)
   const [page, setPage] = useState<Page>('properties')
+
+  const handleSessionExpired = useCallback(() => setUser(null), [])
 
   async function checkHealth() {
     setHealth('A verificar a API...')
@@ -134,7 +137,7 @@ export default function App() {
             </button>
           </section>
           <hr />
-          {user.role === 'prestador' ? (
+          {(user.role === 'prestador' || user.role === 'service_provider') ? (
             <p>Esta área é reservada a administradores e supervisores.</p>
           ) : (
             <>
@@ -142,6 +145,7 @@ export default function App() {
               {page === 'properties' && <PropertiesPage />}
               {page === 'serviceProviders' && <ServiceProvidersPage />}
               {page === 'icalImport' && <IcalImportPage />}
+              {page === 'tasks' && <TasksPage onSessionExpired={handleSessionExpired} />}
             </>
           )}
         </>
