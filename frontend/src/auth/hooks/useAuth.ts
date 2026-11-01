@@ -9,19 +9,34 @@ export type LoginCredentials = {
   remember: boolean
 }
 
+type AuthResponse = {
+  data: AppUser
+  meta: {
+    expires_at: string
+  }
+}
+
 export function useAuth() {
   const [user, setUser] = useState<AppUser | null>(null)
   const [message, setMessage] = useState('')
   const [ready, setReady] = useState(false)
   const [busy, setBusy] = useState(false)
+  const [expiresAt, setExpiresAt] = useState<number | null>(null)
 
   useEffect(() => {
     let active = true
 
-    api.get<{ data: AppUser }>('/api/user')
+    api.get<AuthResponse>('/api/user')
       .then((response) => {
         if (!active) return
-        setUser(response.data.data)
+        const deadline = Date.parse(response.data.meta.expires_at)
+
+      if (!Number.isFinite(deadline) || deadline <= Date.now()) {
+        throw new Error('A sessão recebida não tem um prazo válido.')
+      }
+
+      setExpiresAt(deadline)
+      setUser(response.data.data)
         setMessage('')
       })
       .catch((error: unknown) => {
@@ -29,6 +44,7 @@ export function useAuth() {
 
         if (axios.isAxiosError(error) && error.response?.status === 401) {
           setUser(null)
+          setExpiresAt(null)
         } else {
           setMessage(errorMessage(error))
         }
@@ -42,6 +58,62 @@ export function useAuth() {
     }
   }, [])
 
+  useEffect(() => {
+    if (expiresAt === null) return
+
+    function expireSession() {
+      setUser(null)
+      setExpiresAt(null)
+      setMessage('A sessão expirou. Inicia sessão novamente.')
+    }
+
+    function checkExpiration() {
+      if (expiresAt !== null && Date.now() >= expiresAt) {
+        expireSession()
+      }
+    }
+
+    const timer = window.setTimeout(
+      expireSession,
+      Math.max(0, expiresAt - Date.now()),
+    )
+
+    window.addEventListener('focus', checkExpiration)
+    document.addEventListener('visibilitychange', checkExpiration)
+
+    return () => {
+      window.clearTimeout(timer)
+      window.removeEventListener('focus', checkExpiration)
+      document.removeEventListener('visibilitychange', checkExpiration)
+    }
+  }, [expiresAt])
+
+  useEffect(() => {
+    if (user === null) return
+
+    const interceptor = api.interceptors.response.use(
+      (response) => response,
+      (error: unknown) => {
+        if (axios.isAxiosError(error)) {
+          const status = error.response?.status
+
+          if (status === 401) {
+            setUser(null)
+            setExpiresAt(null)
+            setMessage('A sessão terminou. Inicia sessão novamente.')
+          } else if (status === 403) {
+            setMessage('Não tens permissão para realizar esta operação.')
+          }
+        }
+
+        return Promise.reject(error)
+      },
+    )
+
+    return () => {
+      api.interceptors.response.eject(interceptor)
+    }
+  }, [user])
   async function login(credentials: LoginCredentials): Promise<boolean> {
     setBusy(true)
     setMessage('')
@@ -49,11 +121,18 @@ export function useAuth() {
     try {
       await api.get('/sanctum/csrf-cookie')
 
-      const response = await api.post<{ data: AppUser }>(
+      const response = await api.post<AuthResponse>(
         '/login',
         credentials,
       )
 
+      const deadline = Date.parse(response.data.meta.expires_at)
+
+      if (!Number.isFinite(deadline) || deadline <= Date.now()) {
+        throw new Error('A sessão recebida não tem um prazo válido.')
+      }
+
+      setExpiresAt(deadline)
       setUser(response.data.data)
       setMessage('Login efetuado.')
 
@@ -76,10 +155,12 @@ export function useAuth() {
       await api.post('/logout')
 
       setUser(null)
+      setExpiresAt(null)
       setMessage('Sessão terminada.')
     } catch (error) {
       if (axios.isAxiosError(error) && error.response?.status === 401) {
         setUser(null)
+        setExpiresAt(null)
         setMessage('A sessão já terminou.')
       } else {
         setMessage(errorMessage(error))
