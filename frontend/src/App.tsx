@@ -14,6 +14,7 @@ export default function App() {
 
   const [health, setHealth] = useState('A verificar a API...')
   const [user, setUser] = useState<AppUser | null>(null)
+  const [remember, setRemember] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [message, setMessage] = useState('')
@@ -79,6 +80,7 @@ export default function App() {
       const response = await api.post<{ data: AppUser }>('/login', {
         email,
         password,
+        remember,
       })
       setUser(response.data.data)
       setPassword('')
@@ -134,7 +136,7 @@ export default function App() {
             </button>
           </section>
           <hr />
-          {user.role === 'prestador' ? (
+          {user.role === 'service_provider' ? (
             <p>Esta área é reservada a administradores e supervisores.</p>
           ) : (
             <>
@@ -147,6 +149,15 @@ export default function App() {
         </>
       ) : (
         <form onSubmit={handleLogin}>
+          <label>
+            <input
+              type="checkbox"
+              checked={remember}
+              onChange={(event) => setRemember(event.target.checked)}
+              disabled={busy}
+            />
+            Lembrar-me durante 14 dias
+          </label>
           <h2>Entrar</h2>
           <label>
             Email

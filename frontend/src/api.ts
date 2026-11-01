@@ -4,7 +4,7 @@ export type AppUser = {
     id: number
     name: string
     email: string
-    role: 'admin' | 'supervisor' | 'prestador'
+    role: 'admin' | 'supervisor' | 'service_provider'
 }
 
 export const api = axios.create({
