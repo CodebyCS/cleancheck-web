@@ -24,9 +24,9 @@ Confirmar nomes, permissões, ordenação e formato de erro com Guilherme e Carl
 
 ## Validação
 
-- `npm run lint`: passou.
-- `npm run build`: passou.
-- O teste E2E da página e a troca de acesso entre dois prestadores **não foram executados nesta validação**, porque a API local estava indisponível.
-
-Para completar o teste integrado: entrar na web como Administrador ou Supervisor, atribuir uma tarefa pendente ao prestador A, confirmar que A vê a tarefa e B não; reatribuir a B, atualizar as listas e confirmar que A perde o acesso e B passa a abrir o detalhe. Registar os resultados no PR.
+- Em 30/10/2026, o fluxo integrado na web passou com uma conta de Administrador e a tarefa fictícia #1: atribuição ao prestador de teste A, seguida de reatribuição ao prestador de teste B. A API devolveu ao A uma lista vazia e `404` no detalhe; o B passou a ver a tarefa na lista e a abrir o detalhe com `200`. Após recarregar a página, a sessão manteve-se e a interface não apresentou responsável atual ou histórico como se fossem dados persistidos.
+- Em 02/11/2026, `npm run lint` e `npm run build` passaram após a correção do erro de detalhe. Na interface, um prestador temporariamente inativo deixou de aparecer no seletor; a tentativa de reatribuir uma tarefa temporariamente concluída apresentou o erro `422`; uma conta sem permissão recebeu `403`. Nenhum destes pedidos mostrou uma confirmação indevida de sucesso.
+- Uma tarefa temporariamente indisponível provocou `404` no detalhe. Foi corrigida a apresentação da mensagem para continuar visível mesmo quando a lista fica vazia. Depois de restaurar a tarefa, **Tentar novamente** recuperou a lista e o detalhe e removeu o erro antigo.
+- Com a API temporariamente desligada, a web mostrou erro de ligação e **Tentar novamente** sem falhar. Depois de religar a API, a atualização recuperou a tarefa.
+- As alterações de teste na base de dados local foram revertidas: a tarefa fictícia #1 ficou `pending` e atribuída ao prestador #2, os dois prestadores ficaram ativos e a conta de Administrador recuperou o perfil original.
 

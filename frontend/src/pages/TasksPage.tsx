@@ -159,7 +159,11 @@ export function TasksPage({ onSessionExpired }: Props) {
       {confirmation && <Message type="success">A API confirmou a atribuição da tarefa #{confirmation.taskId} a {confirmation.providerName} (prestador #{confirmation.providerId}).</Message>}
       {loading && <Message type="info">A carregar tarefas e prestadores...</Message>}
       {listError && <Message type="error">{listError} <button type="button" onClick={() => void refresh()}>Tentar novamente</button></Message>}
-      {!loading && !listError && tasks.length === 0 && <Message type="info">Ainda não existem tarefas.</Message>}
+      {!loading && !listError && tasks.length === 0 && (
+        detailError
+          ? <Message type="error">{detailError} <button type="button" onClick={() => { void Promise.allSettled([refresh(), refreshDetail()]) }}>Tentar novamente</button></Message>
+          : <Message type="info">Ainda não existem tarefas.</Message>
+      )}
       {!loading && !listError && tasks.length > 0 && (
         <div className="tasks-layout">
           <div>
