@@ -1,38 +1,59 @@
 import { useEffect, useState } from 'react'
-import type { FormEvent } from 'react'
 import { errorMessage } from '../api'
 import { Button } from '../components/Button'
-import { Field } from '../components/Field'
 import { Message } from '../components/Message'
-import { createServiceProvider, listServiceProviders } from '../services/serviceProviders'
-import type { ServiceProvider, ServiceProviderInput } from '../services/serviceProviders'
-import { fieldErrors } from '../services/validation'
-import type { FieldErrors } from '../services/validation'
-
-const emptyForm: ServiceProviderInput = {
-  name: '',
-  email: '',
-  password: '',
-  phone: '',
-}
+import { SelectField } from '../components/SelectField'
+import type { ActiveFilter } from '../services/properties'
+import { listServiceProviders, setServiceProviderActive } from '../services/serviceProviders'
+import type { ServiceProvider } from '../services/serviceProviders'
+import { initialsOf } from '../utils/initials'
+import { ServiceProviderForm } from './ServiceProviderForm'
+import './records.css'
 
 type Feedback = { type: 'error' | 'success'; text: string } | null
+type FormTarget = { provider: ServiceProvider | null } | null
+
+const filterOptions = [
+  { value: 'all', label: 'Todos' },
+  { value: 'active', label: 'Ativos' },
+  { value: 'inactive', label: 'Inativos' },
+]
+
+function formatAddress(provider: ServiceProvider): string {
+  const locality = [provider.postal_code, provider.city].filter(Boolean).join(' ')
+  const parts = [provider.address, locality].filter(Boolean)
+  return parts.length > 0 ? parts.join(', ') : '—'
+}
+
+function Avatar({ provider, large = false }: { provider: ServiceProvider; large?: boolean }) {
+  const className = large ? 'avatar avatar-large' : 'avatar'
+
+  return provider.photo_url ? (
+    <img className={className} src={provider.photo_url} alt={`Fotografia de ${provider.name}`} />
+  ) : (
+    <span className={className} aria-hidden="true">{initialsOf(provider.name)}</span>
+  )
+}
 
 export function ServiceProvidersPage() {
   const [items, setItems] = useState<ServiceProvider[]>([])
+  const [filter, setFilter] = useState<ActiveFilter>('all')
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState('')
-  const [form, setForm] = useState<ServiceProviderInput>(emptyForm)
-  const [errors, setErrors] = useState<FieldErrors>({})
-  const [saving, setSaving] = useState(false)
+  const [selectedId, setSelectedId] = useState<number | null>(null)
+  const [formTarget, setFormTarget] = useState<FormTarget>(null)
+  const [toggling, setToggling] = useState(false)
   const [feedback, setFeedback] = useState<Feedback>(null)
+  const [reloadKey, setReloadKey] = useState(0)
 
   useEffect(() => {
     let active = true
 
-    listServiceProviders()
+    listServiceProviders(filter)
       .then((providers) => {
-        if (active) setItems(providers)
+        if (!active) return
+        setItems(providers)
+        setLoadError('')
       })
       .catch((error: unknown) => {
         if (active) setLoadError(errorMessage(error))
@@ -44,71 +65,153 @@ export function ServiceProvidersPage() {
     return () => {
       active = false
     }
-  }, [])
+  }, [filter, reloadKey])
 
-  function handleChange(name: string, value: string) {
-    setForm((current) => ({ ...current, [name]: value }))
+  function reload() {
+    setLoading(true)
+    setReloadKey((key) => key + 1)
   }
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    setSaving(true)
-    setErrors({})
-    setFeedback(null)
+  function handleFilterChange(value: string) {
+    setLoading(true)
+    setFilter(value as ActiveFilter)
+  }
 
-    try {
-      await createServiceProvider(form)
-      setForm(emptyForm)
+  const selected = items.find((item) => item.id === selectedId) ?? null
+
+  function handleSaved(saved: ServiceProvider, photoError?: string) {
+    const isNew = formTarget?.provider === null
+    setFormTarget(null)
+    setSelectedId(saved.id)
+
+    if (photoError) {
+      setFeedback({ type: 'error', text: `Dados guardados, mas a fotografia não foi enviada: ${photoError}` })
+    } else {
       setFeedback({
         type: 'success',
-        text: 'Prestador criado. Já pode entrar com este e-mail na web e no mobile.',
+        text: isNew ? 'Prestador criado. Já pode entrar com este e-mail na web e no mobile.' : 'Alterações guardadas.',
       })
-      setItems(await listServiceProviders())
-      setLoadError('')
+    }
+
+    reload()
+  }
+
+  async function handleToggleActive(provider: ServiceProvider) {
+    const deactivating = provider.is_active
+
+    if (deactivating && !window.confirm(
+      `Desativar ${provider.name}? Deixa de conseguir entrar e não pode receber novas tarefas. As tarefas antigas mantêm-se.`,
+    )) {
+      return
+    }
+
+    setToggling(true)
+    setFeedback(null)
+    try {
+      await setServiceProviderActive(provider.id, !deactivating)
+      setFeedback({ type: 'success', text: deactivating ? 'Prestador desativado.' : 'Prestador ativado.' })
+      reload()
     } catch (error) {
-      const fields = fieldErrors(error)
-      setErrors(fields)
-      setFeedback({
-        type: 'error',
-        text: Object.keys(fields).length > 0
-          ? 'Corrija os campos assinalados.'
-          : errorMessage(error),
-      })
+      setFeedback({ type: 'error', text: errorMessage(error) })
     } finally {
-      setSaving(false)
+      setToggling(false)
     }
   }
 
   return (
     <section>
-      <h2>Prestadores</h2>
+      <div className="records-toolbar">
+        <div>
+          <h2>Prestadores</h2>
+          {!loading && !loadError && <p className="record-card-meta">{items.length} registos</p>}
+        </div>
+        <SelectField
+          label="Mostrar"
+          name="active-filter"
+          value={filter}
+          options={filterOptions}
+          onChange={(_, value) => handleFilterChange(value)}
+        />
+        <Button onClick={() => setFormTarget({ provider: null })}>+ Novo prestador</Button>
+      </div>
 
-      <form onSubmit={handleSubmit} noValidate>
-        <h3>Novo prestador</h3>
-        <Field label="Nome" name="name" value={form.name} onChange={handleChange} error={errors.name} required disabled={saving} />
-        <Field label="E-mail" name="email" type="email" autoComplete="off" value={form.email} onChange={handleChange} error={errors.email} required disabled={saving} />
-        <Field label="Password inicial" name="password" type="password" autoComplete="new-password" value={form.password} onChange={handleChange} error={errors.password} required disabled={saving} />
-        <Field label="Telefone" name="phone" type="tel" value={form.phone} onChange={handleChange} error={errors.phone} required disabled={saving} />
-        {feedback && <Message type={feedback.type}>{feedback.text}</Message>}
-        <Button type="submit" loading={saving}>Criar prestador</Button>
-      </form>
+      {feedback && <Message type={feedback.type}>{feedback.text}</Message>}
 
-      <h3>Lista</h3>
-      {loading ? (
-        <Message type="info">A carregar prestadores...</Message>
-      ) : loadError ? (
-        <Message type="error">{loadError}</Message>
-      ) : items.length === 0 ? (
-        <Message type="info">Ainda não há prestadores registados.</Message>
-      ) : (
-        <ul>
-          {items.map((provider) => (
-            <li key={provider.id}>
-              <strong>{provider.name}</strong> — {provider.email} — {provider.phone}
-              {!provider.is_active && ' (inativo)'}
-            </li>
-          ))}
-        </ul>
+      <div className="records-layout">
+        <div>
+          {loading ? (
+            <Message type="info">A carregar prestadores...</Message>
+          ) : loadError ? (
+            <Message type="error">{loadError}</Message>
+          ) : items.length === 0 ? (
+            <Message type="info">Não há prestadores para mostrar.</Message>
+          ) : (
+            <ul className="records-list">
+              {items.map((provider) => (
+                <li key={provider.id}>
+                  <button
+                    type="button"
+                    className={[
+                      'record-card',
+                      provider.id === selectedId ? 'selected' : '',
+                      provider.is_active ? '' : 'inactive',
+                    ].filter(Boolean).join(' ')}
+                    aria-pressed={provider.id === selectedId}
+                    onClick={() => setSelectedId(provider.id)}
+                  >
+                    <span className="record-card-title">
+                      <Avatar provider={provider} />
+                      {provider.name}
+                      {!provider.is_active && <span className="badge badge-inactive">Inativo</span>}
+                    </span>
+                    <span className="record-card-meta">
+                      {provider.email} · {provider.phone}
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        {selected ? (
+          <aside className="detail-panel" aria-label="Detalhe do prestador">
+            <div className="detail-header">
+              <Avatar provider={selected} large />
+              <h3>
+                {selected.name}
+                {!selected.is_active && <span className="badge badge-inactive">Inativo</span>}
+              </h3>
+            </div>
+            <dl className="detail-rows">
+              <div className="detail-row"><dt>E-mail</dt><dd>{selected.email}</dd></div>
+              <div className="detail-row"><dt>Telefone</dt><dd>{selected.phone}</dd></div>
+              <div className="detail-row"><dt>Morada</dt><dd>{formatAddress(selected)}</dd></div>
+            </dl>
+            <div className="detail-actions">
+              <Button onClick={() => setFormTarget({ provider: selected })} disabled={toggling}>Editar</Button>
+              <Button
+                variant="secondary"
+                className={selected.is_active ? 'btn-danger' : undefined}
+                loading={toggling}
+                loadingText="A atualizar..."
+                onClick={() => void handleToggleActive(selected)}
+              >
+                {selected.is_active ? 'Desativar' : 'Ativar'}
+              </Button>
+            </div>
+          </aside>
+        ) : (
+          <div className="detail-empty">Selecione um prestador para ver os detalhes.</div>
+        )}
+      </div>
+
+      {formTarget && (
+        <ServiceProviderForm
+          provider={formTarget.provider}
+          onClose={() => setFormTarget(null)}
+          onSaved={handleSaved}
+        />
       )}
     </section>
   )
