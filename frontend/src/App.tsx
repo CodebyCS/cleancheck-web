@@ -137,7 +137,7 @@ export default function App() {
             </button>
           </section>
           <hr />
-          {(user.role === 'prestador' || user.role === 'service_provider') ? (
+          {user.role === 'service_provider' ? (
             <p>Esta área é reservada a administradores e supervisores.</p>
           ) : (
             <>
