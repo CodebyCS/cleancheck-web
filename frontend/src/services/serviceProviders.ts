@@ -26,3 +26,8 @@ export async function createServiceProvider(input: ServiceProviderInput): Promis
   const response = await api.post<{ data: ServiceProvider }>('/api/service-providers', input)
   return response.data.data
 }
+
+export async function listActiveServiceProviders(): Promise<ServiceProvider[]> {
+  const response = await api.get<{ data: ServiceProvider[] }>('/api/service-providers?active=1')
+  return response.data.data
+}
