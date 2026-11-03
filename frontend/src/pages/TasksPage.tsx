@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
 import axios from 'axios'
 import { errorMessage } from '../api'
@@ -52,6 +52,8 @@ export function TasksPage({ onSessionExpired }: Props) {
   const [loading, setLoading] = useState(true)
   const [listError, setListError] = useState('')
   const [selectedId, setSelectedId] = useState<number | null>(null)
+  const selectedIdRef = useRef<number | null>(null)
+  const detailRequestRef = useRef(0)
   const [detail, setDetail] = useState<TaskDetail | null>(null)
   const [detailLoading, setDetailLoading] = useState(false)
   const [detailError, setDetailError] = useState('')
@@ -83,6 +85,8 @@ export function TasksPage({ onSessionExpired }: Props) {
   }, [refresh])
 
   async function openTask(id: number) {
+    selectedIdRef.current = id
+    const requestId = ++detailRequestRef.current
     setSelectedId(id)
     setDetail(null)
     setDetailError('')
@@ -91,29 +95,45 @@ export function TasksPage({ onSessionExpired }: Props) {
     setConfirmation(null)
     setDetailLoading(true)
     try {
-      setDetail(await getTask(id))
+      const nextDetail = await getTask(id)
+      if (requestId === detailRequestRef.current && selectedIdRef.current === id) {
+        setDetail(nextDetail)
+      }
     } catch (error) {
-      setDetailError(requestError(error, onSessionExpired))
-      if (axios.isAxiosError(error) && error.response?.status === 404) void refresh()
+      if (requestId === detailRequestRef.current && selectedIdRef.current === id) {
+        setDetailError(requestError(error, onSessionExpired))
+        if (axios.isAxiosError(error) && error.response?.status === 404) void refresh()
+      }
     } finally {
-      setDetailLoading(false)
+      if (requestId === detailRequestRef.current && selectedIdRef.current === id) {
+        setDetailLoading(false)
+      }
     }
   }
 
   async function refreshDetail() {
-    if (selectedId === null) return
+    const id = selectedIdRef.current
+    if (id === null) return
+    const requestId = ++detailRequestRef.current
     setDetailLoading(true)
     setDetailError('')
     try {
-      setDetail(await getTask(selectedId))
+      const nextDetail = await getTask(id)
+      if (requestId === detailRequestRef.current && selectedIdRef.current === id) {
+        setDetail(nextDetail)
+      }
     } catch (error) {
-      setDetailError(requestError(error, onSessionExpired))
-      if (axios.isAxiosError(error) && error.response?.status === 404) {
-        setDetail(null)
-        void refresh()
+      if (requestId === detailRequestRef.current && selectedIdRef.current === id) {
+        setDetailError(requestError(error, onSessionExpired))
+        if (axios.isAxiosError(error) && error.response?.status === 404) {
+          setDetail(null)
+          void refresh()
+        }
       }
     } finally {
-      setDetailLoading(false)
+      if (requestId === detailRequestRef.current && selectedIdRef.current === id) {
+        setDetailLoading(false)
+      }
     }
   }
 
