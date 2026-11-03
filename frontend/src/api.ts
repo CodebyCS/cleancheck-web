@@ -4,7 +4,7 @@ export type AppUser = {
     id: number
     name: string
     email: string
-    role: 'admin' | 'supervisor' | 'service_provider' | 'prestador'
+    role: 'admin' | 'supervisor' | 'service_provider'
 }
 
 export const api = axios.create({
@@ -19,6 +19,12 @@ export function errorMessage(error: unknown): string {
     if (axios.isAxiosError(error)) {
         if (!error.response) {
             return 'Não foi possível contactar a API.'
+        }
+        if (error.response.status === 401) {
+        return 'A sessão terminou. Inicia sessão novamente.'
+        }
+        if (error.response.status === 403) {
+        return 'Não tens permissão para realizar esta operação.'
         }
         if (error.response.status === 419) {
             return 'A sessão de segurança expirou. Tente novamente.'
