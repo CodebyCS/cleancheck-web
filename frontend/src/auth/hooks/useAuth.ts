@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import axios from 'axios'
 import { api, errorMessage } from '../../api'
 import type { AppUser } from '../../api'
+
 
 export type LoginCredentials = {
   email: string
@@ -22,6 +23,12 @@ export function useAuth() {
   const [ready, setReady] = useState(false)
   const [busy, setBusy] = useState(false)
   const [expiresAt, setExpiresAt] = useState<number | null>(null)
+
+  const handleSessionExpired = useCallback(() => {
+  setUser(null)
+  setExpiresAt(null)
+  setMessage('A sessão terminou. Inicia sessão novamente.')
+}, [])
 
   useEffect(() => {
     let active = true
@@ -177,5 +184,6 @@ export function useAuth() {
     busy,
     login,
     logout,
+    handleSessionExpired,
   }
 }

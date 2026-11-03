@@ -7,11 +7,20 @@ import { IcalImportPage } from './pages/IcalImportPage'
 import { useAuth } from './auth/hooks/useAuth'
 import { LoginForm } from './auth/components/LoginForm'
 import { ApiHealthStatus } from './diagnostics/components/ApiHealthStatus'
+import { TasksPage } from './pages/TasksPage'
+
 
 export default function App() {
   const [page, setPage] = useState<Page>('properties')
-  const { user, message, ready, busy, login, logout } = useAuth()
-
+  const {
+    user,
+    message,
+    ready,
+    busy,
+    login,
+    logout,
+    handleSessionExpired,
+  } = useAuth()
 
   return (
   
@@ -46,6 +55,7 @@ export default function App() {
               {page === 'properties' && <PropertiesPage />}
               {page === 'serviceProviders' && <ServiceProvidersPage />}
               {page === 'icalImport' && <IcalImportPage />}
+              {page === 'tasks' && <TasksPage onSessionExpired={handleSessionExpired} />}
             </>
           )}
         </>
