@@ -73,6 +73,10 @@ export function ServiceProviderForm({ provider, onClose, onSaved }: ServiceProvi
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
+
+    // Do not save while the chosen photo is invalid, otherwise it would be silently dropped.
+    if (photoError) return
+
     setSaving(true)
     setErrors({})
     setError('')
@@ -115,7 +119,7 @@ export function ServiceProviderForm({ provider, onClose, onSaved }: ServiceProvi
           <Button variant="secondary" onClick={onClose} disabled={saving}>
             Cancelar
           </Button>
-          <Button type="submit" form="provider-form" loading={saving}>
+          <Button type="submit" form="provider-form" loading={saving} disabled={photoError !== ''}>
             {editing ? 'Guardar alterações' : 'Criar prestador'}
           </Button>
         </>

@@ -222,6 +222,11 @@
   opacity: 0.7;
 }
 
+.photo-field-clear {
+  padding: 4px 10px;
+  font-size: 0.8rem;
+}
+
 .visually-hidden {
   position: absolute;
   width: 1px;

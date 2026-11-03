@@ -1,5 +1,6 @@
 import { useEffect, useId, useMemo, useState } from 'react'
 import { initialsOf } from '../utils/initials'
+import { Button } from './Button'
 import './components.css'
 
 type PhotoFieldProps = {
@@ -66,6 +67,12 @@ export function PhotoField({ name, currentUrl, file, onChange, error, disabled =
         <span className="photo-field-hint">
           {file ? file.name : 'JPG, PNG ou WEBP, até 2 MB.'}
         </span>
+        {(file || error) && (
+          // Lets the user drop the chosen (or rejected) file and keep the current photo.
+          <Button variant="secondary" className="photo-field-clear" onClick={() => onChange(null)} disabled={disabled}>
+            Remover escolha
+          </Button>
+        )}
         {error && (
           <span id={errorId} className="field-error">
             {error}
