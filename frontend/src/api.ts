@@ -20,6 +20,12 @@ export function errorMessage(error: unknown): string {
         if (!error.response) {
             return 'Não foi possível contactar a API.'
         }
+        if (error.response.status === 401) {
+        return 'A sessão terminou. Inicia sessão novamente.'
+        }
+        if (error.response.status === 403) {
+        return 'Não tens permissão para realizar esta operação.'
+        }
         if (error.response.status === 419) {
             return 'A sessão de segurança expirou. Tente novamente.'
         }
