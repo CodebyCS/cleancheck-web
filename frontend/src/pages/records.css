@@ -1,0 +1,144 @@
+.records-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.records-toolbar .field {
+  margin-bottom: 0;
+  min-width: 180px;
+}
+
+.records-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  gap: 16px;
+  align-items: start;
+  text-align: left;
+}
+
+@media (max-width: 900px) {
+  .records-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.records-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.record-card {
+  display: block;
+  width: 100%;
+  padding: 14px 16px;
+  border: 1px solid var(--border, #d4d4d8);
+  border-radius: 10px;
+  background: var(--bg, #fff);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.record-card:hover,
+.record-card.selected {
+  border-color: #1d4ed8;
+}
+
+.record-card.inactive {
+  opacity: 0.6;
+}
+
+.record-card-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+}
+
+.record-card-meta {
+  margin-top: 4px;
+  font-size: 0.85rem;
+  opacity: 0.75;
+}
+
+.detail-panel {
+  position: sticky;
+  top: 16px;
+  padding: 18px;
+  border: 1px solid var(--border, #d4d4d8);
+  border-radius: 12px;
+  background: var(--bg, #fff);
+}
+
+.detail-panel h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 12px;
+}
+
+.detail-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.detail-header h3 {
+  margin: 0;
+}
+
+.detail-rows {
+  margin: 0 0 16px;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--border, #e5e4e7);
+  font-size: 0.9rem;
+}
+
+.detail-row dt {
+  opacity: 0.7;
+}
+
+.detail-row dd {
+  margin: 0;
+  text-align: right;
+}
+
+.detail-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.detail-empty {
+  padding: 32px 18px;
+  border: 1px dashed var(--border, #d4d4d8);
+  border-radius: 12px;
+  text-align: center;
+  opacity: 0.7;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 12px;
+}
+
+.form-grid .span-2 {
+  grid-column: 1 / -1;
+}
