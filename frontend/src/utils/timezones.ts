@@ -24,3 +24,7 @@ export function timezoneOptionsWith(current: string): SelectOption[] {
 
   return [{ value: current, label: current }, ...TIMEZONE_OPTIONS]
 }
+
+export function timezoneLabel(value: string): string {
+  return TIMEZONE_OPTIONS.find((option) => option.value === value)?.label ?? value
+}

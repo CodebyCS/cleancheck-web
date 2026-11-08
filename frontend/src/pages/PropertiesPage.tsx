@@ -7,6 +7,8 @@ import { listProperties, setPropertyActive } from '../services/properties'
 import type { ActiveFilter, Property } from '../services/properties'
 import { listServiceProviders } from '../services/serviceProviders'
 import type { ServiceProvider } from '../services/serviceProviders'
+import { taskWindow } from '../utils/taskWindow'
+import { timezoneLabel } from '../utils/timezones'
 import { PropertyForm } from './PropertyForm'
 import './records.css'
 
@@ -21,6 +23,13 @@ const filterOptions = [
 
 function formatAmount(amount: string | null): string {
   return amount === null ? '—' : `${Number(amount).toFixed(2).replace('.', ',')} €`
+}
+
+function cleaningWindowText(property: Property): string {
+  const { start, end } = taskWindow(property.default_check_out_time, property.default_check_in_time)
+  const usesDefaults = !property.default_check_out_time && !property.default_check_in_time
+
+  return `${start} → ${end}${usesDefaults ? ' (padrão)' : ''}`
 }
 
 export function PropertiesPage() {
@@ -161,7 +170,7 @@ export function PropertiesPage() {
                     <span className="record-card-meta">
                       Responsável: {providerName(property.responsible_service_provider_id)}
                       {' · '}
-                      Entrada {property.default_check_in_time ?? '—'} / Saída {property.default_check_out_time ?? '—'}
+                      Limpeza {cleaningWindowText(property)}
                     </span>
                   </button>
                 </li>
@@ -180,8 +189,10 @@ export function PropertiesPage() {
               <div className="detail-row"><dt>Morada</dt><dd>{selected.address}, {selected.postal_code} {selected.city}</dd></div>
               <div className="detail-row"><dt>Responsável</dt><dd>{providerName(selected.responsible_service_provider_id)}</dd></div>
               <div className="detail-row"><dt>Valor base</dt><dd>{formatAmount(selected.base_cleaning_amount)}</dd></div>
-              <div className="detail-row"><dt>Hora de entrada</dt><dd>{selected.default_check_in_time ?? '—'}</dd></div>
               <div className="detail-row"><dt>Hora de saída</dt><dd>{selected.default_check_out_time ?? '—'}</dd></div>
+              <div className="detail-row"><dt>Hora de entrada</dt><dd>{selected.default_check_in_time ?? '—'}</dd></div>
+              <div className="detail-row"><dt>Fuso horário</dt><dd>{timezoneLabel(selected.timezone)}</dd></div>
+              <div className="detail-row"><dt>Janela de limpeza</dt><dd>{cleaningWindowText(selected)}</dd></div>
               <div className="detail-row"><dt>Acesso</dt><dd>{selected.access_instructions || '—'}</dd></div>
             </dl>
             <div className="detail-actions">
