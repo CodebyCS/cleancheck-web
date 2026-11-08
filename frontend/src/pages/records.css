@@ -142,3 +142,21 @@
 .form-grid .span-2 {
   grid-column: 1 / -1;
 }
+
+.schedule-fieldset {
+  margin: 16px 0 0;
+  padding: 12px 16px 4px;
+  border: 1px solid var(--border, #e5e4e7);
+  border-radius: 8px;
+}
+
+.schedule-fieldset legend {
+  padding: 0 6px;
+  font-weight: 600;
+}
+
+.form-hint {
+  margin: 4px 0 12px;
+  font-size: 0.85rem;
+  opacity: 0.8;
+}
