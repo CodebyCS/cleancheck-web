@@ -11,6 +11,8 @@ export type Property = {
   base_cleaning_amount: string | null
   default_check_in_time: string | null
   default_check_out_time: string | null
+  // IANA identifier, e.g. 'Europe/Lisbon' or 'America/Sao_Paulo'
+  timezone: string
   is_active: boolean
 }
 
@@ -24,6 +26,7 @@ export type PropertyInput = {
   base_cleaning_amount?: number | null
   default_check_in_time?: string | null
   default_check_out_time?: string | null
+  timezone?: string
 }
 
 export type ActiveFilter = 'all' | 'active' | 'inactive'

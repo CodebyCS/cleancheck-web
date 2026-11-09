@@ -11,6 +11,8 @@ import { createProperty, updateProperty } from '../services/properties'
 import type { Property, PropertyInput } from '../services/properties'
 import { fieldErrors } from '../services/validation'
 import type { FieldErrors } from '../services/validation'
+import { taskWindow } from '../utils/taskWindow'
+import { DEFAULT_TIMEZONE, timezoneOptionsWith } from '../utils/timezones'
 
 type PropertyFormProps = {
   property: Property | null
@@ -29,6 +31,7 @@ type FormState = {
   base_cleaning_amount: string
   default_check_in_time: string
   default_check_out_time: string
+  timezone: string
 }
 
 function toFormState(property: Property | null): FormState {
@@ -42,6 +45,7 @@ function toFormState(property: Property | null): FormState {
     base_cleaning_amount: property?.base_cleaning_amount ?? '',
     default_check_in_time: property?.default_check_in_time ?? '',
     default_check_out_time: property?.default_check_out_time ?? '',
+    timezone: property?.timezone ?? DEFAULT_TIMEZONE,
   }
 }
 
@@ -59,6 +63,7 @@ function toInput(form: FormState): PropertyInput {
     base_cleaning_amount: form.base_cleaning_amount === '' ? null : Number(form.base_cleaning_amount),
     default_check_in_time: form.default_check_in_time || null,
     default_check_out_time: form.default_check_out_time || null,
+    timezone: form.timezone,
   }
 }
 
@@ -69,6 +74,7 @@ export function PropertyForm({ property, providerOptions, onClose, onSaved }: Pr
   const [error, setError] = useState('')
 
   const editing = property !== null
+  const cleaningWindow = taskWindow(form.default_check_out_time || null, form.default_check_in_time || null)
 
   function handleChange(name: string, value: string) {
     setForm((current) => ({ ...current, [name]: value }))
@@ -137,9 +143,37 @@ export function PropertyForm({ property, providerOptions, onClose, onSaved }: Pr
           </div>
           <Field label="Valor base (€)" name="base_cleaning_amount" type="number" value={form.base_cleaning_amount} onChange={handleChange} error={errors.base_cleaning_amount} disabled={saving} />
           <div />
-          <Field label="Hora de entrada" name="default_check_in_time" type="time" value={form.default_check_in_time} onChange={handleChange} error={errors.default_check_in_time} disabled={saving} />
-          <Field label="Hora de saída" name="default_check_out_time" type="time" value={form.default_check_out_time} onChange={handleChange} error={errors.default_check_out_time} disabled={saving} />
         </div>
+
+        <fieldset className="schedule-fieldset">
+          <legend>Horários dos hóspedes</legend>
+          <p className="form-hint">
+            Horas a que o hóspede sai e o próximo entra, iguais às do anúncio no Airbnb/Booking (o iCal só traz as datas).
+            Valem para todas as reservas deste imóvel; para mudar só uma reserva, use o ajuste local da reserva.
+          </p>
+          <div className="form-grid">
+            <Field label="Hora de saída" name="default_check_out_time" type="time" value={form.default_check_out_time} onChange={handleChange} error={errors.default_check_out_time} disabled={saving} />
+            <Field label="Hora de entrada" name="default_check_in_time" type="time" value={form.default_check_in_time} onChange={handleChange} error={errors.default_check_in_time} disabled={saving} />
+            <div className="span-2">
+              <SelectField
+                label="Fuso horário"
+                name="timezone"
+                value={form.timezone}
+                options={timezoneOptionsWith(form.timezone)}
+                onChange={handleChange}
+                error={errors.timezone}
+                required
+                disabled={saving}
+              />
+            </div>
+          </div>
+          <p className="form-hint" aria-live="polite">
+            Janela de limpeza: <strong>{cleaningWindow.start} → {cleaningWindow.end}</strong> (hora local do imóvel).{' '}
+            {form.default_check_out_time || form.default_check_in_time
+              ? 'Começa 30 min depois da saída e acaba 30 min antes da entrada.'
+              : 'Sem horas definidas, a limpeza é das 11:30 às 14:30.'}
+          </p>
+        </fieldset>
         {error && <Message type="error">{error}</Message>}
       </form>
     </Modal>
