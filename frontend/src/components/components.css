@@ -1,5 +1,7 @@
 .navigation {
   display: flex;
+  /* Lets the items move to a new line on narrow screens instead of overflowing. */
+  flex-wrap: wrap;
   gap: 8px;
   margin-bottom: 24px;
 }
