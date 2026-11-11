@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
 import { errorMessage } from '../api'
 import { Button } from '../components/Button'
@@ -11,6 +11,7 @@ import { createProperty, updateProperty } from '../services/properties'
 import type { Property, PropertyInput } from '../services/properties'
 import { fieldErrors } from '../services/validation'
 import type { FieldErrors } from '../services/validation'
+import { focusFirstInvalid } from '../utils/focus'
 import { taskWindow } from '../utils/taskWindow'
 import { DEFAULT_TIMEZONE, timezoneOptionsWith } from '../utils/timezones'
 
@@ -72,6 +73,11 @@ export function PropertyForm({ property, providerOptions, onClose, onSaved }: Pr
   const [errors, setErrors] = useState<FieldErrors>({})
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+
+  // After the API rejects the data, take the user to the first wrong field.
+  useEffect(() => {
+    if (Object.keys(errors).length > 0) focusFirstInvalid('property-form')
+  }, [errors])
 
   const editing = property !== null
   const cleaningWindow = taskWindow(form.default_check_out_time || null, form.default_check_in_time || null)

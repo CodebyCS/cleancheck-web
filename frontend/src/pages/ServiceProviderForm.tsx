@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
 import axios from 'axios'
 import { errorMessage } from '../api'
@@ -15,6 +15,7 @@ import {
 import type { ServiceProvider, ServiceProviderInput } from '../services/serviceProviders'
 import { fieldErrors } from '../services/validation'
 import type { FieldErrors } from '../services/validation'
+import { focusFirstInvalid } from '../utils/focus'
 
 type ServiceProviderFormProps = {
   provider: ServiceProvider | null
@@ -58,6 +59,11 @@ export function ServiceProviderForm({ provider, onClose, onSaved }: ServiceProvi
   const [errors, setErrors] = useState<FieldErrors>({})
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+
+  // After the API rejects the data, take the user to the first wrong field.
+  useEffect(() => {
+    if (Object.keys(errors).length > 0) focusFirstInvalid('provider-form')
+  }, [errors])
 
   const editing = provider !== null
 
