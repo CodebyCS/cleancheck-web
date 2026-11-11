@@ -127,7 +127,7 @@ export function PropertyForm({ property, providerOptions, onClose, onSaved }: Pr
           <Field label="Código postal" name="postal_code" value={form.postal_code} onChange={handleChange} error={errors.postal_code} required disabled={saving} />
           <Field label="Localidade" name="city" value={form.city} onChange={handleChange} error={errors.city} required disabled={saving} />
           <div className="span-2">
-            <Field label="Instruções de acesso" name="access_instructions" value={form.access_instructions} onChange={handleChange} error={errors.access_instructions} disabled={saving} />
+            <Field label="Instruções de acesso" name="access_instructions" multiline rows={4} value={form.access_instructions} onChange={handleChange} error={errors.access_instructions} disabled={saving} />
           </div>
           <div className="span-2">
             <SelectField
