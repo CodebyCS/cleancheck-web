@@ -1,5 +1,7 @@
 .navigation {
   display: flex;
+  /* Lets the items move to a new line on narrow screens instead of overflowing. */
+  flex-wrap: wrap;
   gap: 8px;
   margin-bottom: 24px;
 }
@@ -33,14 +35,21 @@
   font-weight: 600;
 }
 
-.field input {
+.field input,
+.field textarea {
   padding: 8px 10px;
   border: 1px solid var(--border, #d4d4d8);
   border-radius: 6px;
   font: inherit;
 }
 
-.field input[aria-invalid='true'] {
+.field textarea {
+  min-height: 88px;
+  resize: vertical;
+}
+
+.field input[aria-invalid='true'],
+.field textarea[aria-invalid='true'] {
   border-color: #b91c1c;
 }
 

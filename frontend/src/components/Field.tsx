@@ -10,6 +10,9 @@ type FieldProps = {
   required?: boolean
   disabled?: boolean
   autoComplete?: string
+  // Renders a textarea for long free text, e.g. access instructions.
+  multiline?: boolean
+  rows?: number
 }
 
 export function Field({
@@ -22,8 +25,11 @@ export function Field({
   required = false,
   disabled = false,
   autoComplete,
+  multiline = false,
+  rows = 4,
 }: FieldProps) {
   const errorId = `${name}-error`
+  const describedBy = error ? errorId : undefined
 
   return (
     <div className="field">
@@ -31,18 +37,32 @@ export function Field({
         {label}
         {required && <span aria-hidden="true"> *</span>}
       </label>
-      <input
-        id={name}
-        name={name}
-        type={type}
-        value={value}
-        required={required}
-        disabled={disabled}
-        autoComplete={autoComplete}
-        aria-invalid={error ? true : undefined}
-        aria-describedby={error ? errorId : undefined}
-        onChange={(event) => onChange(name, event.target.value)}
-      />
+      {multiline ? (
+        <textarea
+          id={name}
+          name={name}
+          rows={rows}
+          value={value}
+          required={required}
+          disabled={disabled}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={describedBy}
+          onChange={(event) => onChange(name, event.target.value)}
+        />
+      ) : (
+        <input
+          id={name}
+          name={name}
+          type={type}
+          value={value}
+          required={required}
+          disabled={disabled}
+          autoComplete={autoComplete}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={describedBy}
+          onChange={(event) => onChange(name, event.target.value)}
+        />
+      )}
       {error && (
         <span id={errorId} className="field-error">
           {error}

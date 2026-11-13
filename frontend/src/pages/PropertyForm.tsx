@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
 import { errorMessage } from '../api'
 import { Button } from '../components/Button'
@@ -11,6 +11,7 @@ import { createProperty, updateProperty } from '../services/properties'
 import type { Property, PropertyInput } from '../services/properties'
 import { fieldErrors } from '../services/validation'
 import type { FieldErrors } from '../services/validation'
+import { focusFirstInvalid } from '../utils/focus'
 import { taskWindow } from '../utils/taskWindow'
 import { DEFAULT_TIMEZONE, timezoneOptionsWith } from '../utils/timezones'
 
@@ -73,6 +74,11 @@ export function PropertyForm({ property, providerOptions, onClose, onSaved }: Pr
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
+  // After the API rejects the data, take the user to the first wrong field.
+  useEffect(() => {
+    if (Object.keys(errors).length > 0) focusFirstInvalid('property-form')
+  }, [errors])
+
   const editing = property !== null
   const cleaningWindow = taskWindow(form.default_check_out_time || null, form.default_check_in_time || null)
 
@@ -127,7 +133,7 @@ export function PropertyForm({ property, providerOptions, onClose, onSaved }: Pr
           <Field label="Código postal" name="postal_code" value={form.postal_code} onChange={handleChange} error={errors.postal_code} required disabled={saving} />
           <Field label="Localidade" name="city" value={form.city} onChange={handleChange} error={errors.city} required disabled={saving} />
           <div className="span-2">
-            <Field label="Instruções de acesso" name="access_instructions" value={form.access_instructions} onChange={handleChange} error={errors.access_instructions} disabled={saving} />
+            <Field label="Instruções de acesso" name="access_instructions" multiline rows={4} value={form.access_instructions} onChange={handleChange} error={errors.access_instructions} disabled={saving} />
           </div>
           <div className="span-2">
             <SelectField
