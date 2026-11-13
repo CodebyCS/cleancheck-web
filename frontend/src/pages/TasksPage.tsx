@@ -6,7 +6,7 @@ import { Button } from '../components/Button'
 import { Message } from '../components/Message'
 import { listActiveServiceProviders } from '../services/serviceProviders'
 import type { ServiceProvider } from '../services/serviceProviders'
-import { assignTask, getTask, listTasks } from '../services/tasks'
+import { assignTask, getTask, listTasks, cancelTask, completeTask, restoreTask } from '../services/tasks'
 import type { TaskDetail, TaskSummary } from '../services/tasks'
 import { fieldErrors } from '../services/validation'
 import './TasksPage.css'
@@ -17,17 +17,24 @@ type Confirmation = { taskId: number; providerId: number; providerName: string }
 function requestError(error: unknown, onSessionExpired: () => void): string {
   if (axios.isAxiosError(error)) {
     const status = error.response?.status
+
     if (status === 401) {
       onSessionExpired()
       return 'A sessão terminou. Inicie sessão novamente.'
     }
+
     if (status === 403) return 'Não tem permissão para esta operação.'
+
     if (status === 404) return 'A tarefa já não está disponível. Atualize a lista.'
+
     if (status === 422) {
       const fields = fieldErrors(error)
-      return fields.service_provider_id ?? fields.status ?? 'A atribuição não é permitida para esta tarefa ou prestador.'
+      const firstFieldError = Object.values(fields)[0]
+
+      return firstFieldError ?? error.response?.data?.message ?? 'Os dados enviados não são válidos.'
     }
   }
+
   if (error instanceof Error && !axios.isAxiosError(error)) return error.message
   return errorMessage(error)
 }
@@ -61,13 +68,17 @@ export function TasksPage({ onSessionExpired }: Props) {
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState('')
   const [confirmation, setConfirmation] = useState<Confirmation | null>(null)
+  const [showDeleted, setShowDeleted] = useState(false)
+  const [taskAction, setTaskAction] = useState<'complete' | 'cancel' | 'restore' | null>(null)
+  const [taskActionError, setTaskActionError] = useState('')
+
 
   const refresh = useCallback(async () => {
     setLoading(true)
     setListError('')
     try {
       const [nextTasks, nextProviders] = await Promise.all([
-        listTasks(),
+        listTasks(showDeleted),
         listActiveServiceProviders(),
       ])
       setTasks(nextTasks)
@@ -77,7 +88,7 @@ export function TasksPage({ onSessionExpired }: Props) {
     } finally {
       setLoading(false)
     }
-  }, [onSessionExpired])
+  }, [onSessionExpired, showDeleted])
 
   useEffect(() => {
     const timer = window.setTimeout(() => { void refresh() }, 0)
@@ -170,11 +181,47 @@ export function TasksPage({ onSessionExpired }: Props) {
     await Promise.allSettled([refresh(), refreshDetail()])
   }
 
+  async function handleTaskAction(action: 'complete' | 'cancel' | 'restore') {
+    if (!detail) return
+
+    if (
+      action === 'cancel'
+      && !window.confirm('Tem a certeza de que pretende cancelar esta tarefa?')
+    ) {
+      return
+    }
+
+    setTaskAction(action)
+    setTaskActionError('')
+
+    try {
+      if (action === 'complete') await completeTask(detail.id)
+      if (action === 'cancel') await cancelTask(detail.id)
+      if (action === 'restore') await restoreTask(detail.id)
+
+      await Promise.allSettled([refresh(), refreshDetail()])
+    } catch (error) {
+      setTaskActionError(requestError(error, onSessionExpired))
+    } finally {
+      setTaskAction(null)
+    }
+  }
+
+
   return (
     <section className="tasks-page">
       <div className="tasks-heading">
         <h2>Tarefas</h2>
         <Button variant="secondary" onClick={() => void refresh()} disabled={loading}>Atualizar</Button>
+        <label>
+          <input
+            type="checkbox"
+            checked={showDeleted}
+            onChange={(event) => setShowDeleted(event.target.checked)}
+          />
+          Mostrar tarefas apagadas
+        </label>
+
       </div>
       {confirmation && <Message type="success">A API confirmou a atribuição da tarefa #{confirmation.taskId} a {confirmation.providerName} (prestador #{confirmation.providerId}).</Message>}
       {loading && <Message type="info">A carregar tarefas e prestadores...</Message>}
@@ -210,7 +257,7 @@ export function TasksPage({ onSessionExpired }: Props) {
               <>
                 <dl className="task-fields">
                   <dt>Imóvel</dt><dd>{detail.property ?? 'Imóvel sem nome'}</dd>
-                  <dt>Morada</dt><dd>{detail.address ?? 'Não disponível'}</dd>
+                  <dt>Morada</dt><dd>{detail.property_address ?? 'Não disponível'}</dd>
                   <dt>Tipo</dt><dd>{typeLabel(detail.type)}</dd>
                   <dt>Estado</dt><dd>{detail.status}</dd>
                   <dt>Data</dt><dd>{dateLabel(detail.scheduled_start_at)}</dd>
@@ -218,6 +265,45 @@ export function TasksPage({ onSessionExpired }: Props) {
                   <dt>Início real</dt><dd>{dateLabel(detail.started_at)}</dd>
                   <dt>Conclusão real</dt><dd>{dateLabel(detail.completed_at)}</dd>
                 </dl>
+                {taskActionError && <Message type="error">{taskActionError}</Message>}
+
+                <div className="task-actions">
+                  {detail.status === 'in_progress' && !detail.deleted_at && (
+                    <Button
+                      type="button"
+                      loading={taskAction === 'complete'}
+                      disabled={taskAction !== null}
+                      onClick={() => void handleTaskAction('complete')}
+                    >
+                      Concluir tarefa
+                    </Button>
+                  )}
+
+                  {detail.status === 'pending' && !detail.deleted_at && (
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      loading={taskAction === 'cancel'}
+                      disabled={taskAction !== null}
+                      onClick={() => void handleTaskAction('cancel')}
+                    >
+                      Cancelar tarefa
+                    </Button>
+                  )}
+
+                  {detail.deleted_at && (
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      loading={taskAction === 'restore'}
+                      disabled={taskAction !== null}
+                      onClick={() => void handleTaskAction('restore')}
+                    >
+                      Restaurar tarefa
+                    </Button>
+                  )}
+                </div>
+
                 <p className="task-limitation">O responsável atual e o histórico ainda não estão disponíveis nas consultas da API.</p>
                 <form onSubmit={(event) => void handleAssign(event)}>
                   <label htmlFor="task-provider">Atribuir ou reatribuir a prestador ativo</label>
