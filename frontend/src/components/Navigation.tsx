@@ -1,6 +1,6 @@
 import './components.css'
 
-export type Page = 'properties' | 'serviceProviders' | 'icalImport' | 'tasks'
+export type Page = 'properties' | 'serviceProviders' | 'icalImport' | 'icalSources' | 'tasks'
 
 type NavigationProps = {
   current: Page
