@@ -49,6 +49,9 @@ export type IcalImportResult = {
   channel: string
   created: ImportedBooking[]
   existing: ImportedBooking[]
+  // Only returned by URL syncs (#69, #70); file imports never update or cancel.
+  updated?: ImportedBooking[]
+  cancelled?: ImportedBooking[]
   ambiguous: NotImportedEvent[]
   skipped: NotImportedEvent[]
   warnings: IcalWarning[]
@@ -80,8 +83,8 @@ export async function importIcal(file: File, propertyId: number): Promise<IcalIm
 }
 
 export function icalErrorMessage(error: unknown): string {
-  if (axios.isAxiosError(error) && error.response?.status === 422) {
-    const message = error.response.data?.error?.message
+  if (axios.isAxiosError(error)) {
+    const message = error.response?.data?.error?.message
     if (typeof message === 'string') {
       return message
     }
