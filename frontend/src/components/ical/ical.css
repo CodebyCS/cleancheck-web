@@ -71,3 +71,33 @@
   background: #dbeafe;
   color: #1d4ed8;
 }
+
+.bookings-section {
+  margin-top: 32px;
+}
+
+.bookings-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.bookings-past {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.9rem;
+}
+
+.booking-received {
+  font-size: 0.75rem;
+  opacity: 0.7;
+}
+
+.badge-adjusted {
+  margin-left: 6px;
+  background: #fef3c7;
+  color: #92400e;
+}

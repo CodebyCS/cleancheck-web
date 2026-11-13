@@ -18,7 +18,9 @@ import type { Property } from '../services/properties'
 import { icalErrorMessage } from '../services/reservations'
 import type { IcalImportResult } from '../services/reservations'
 import { fieldErrors } from '../services/validation'
+import { BookingList } from '../components/ical/BookingList'
 import './records.css'
+
 
 type Feedback = { type: 'error' | 'success'; text: string } | null
 type FormTarget = { source: BookingSource | null } | null
@@ -37,6 +39,7 @@ export function IcalSourcesPage() {
   const [busy, setBusy] = useState<Busy>(null)
   const [feedback, setFeedback] = useState<Feedback>(null)
   const [result, setResult] = useState<IcalImportResult | null>(null)
+  const [bookingsKey, setBookingsKey] = useState(0)
 
   useEffect(() => {
     let active = true
@@ -115,6 +118,7 @@ export function IcalSourcesPage() {
       setBusy(null)
       // Success or failure, the attempt is recorded and the status must be refreshed.
       reloadSources()
+      setBookingsKey((key) => key + 1)
     }
   }
 
@@ -143,6 +147,8 @@ export function IcalSourcesPage() {
   }
 
   const locked = busy !== null
+
+  const selectedProperty = properties.find((property) => String(property.id) === propertyId) ?? null
 
   return (
     <section>
@@ -246,6 +252,10 @@ export function IcalSourcesPage() {
       )}
 
       {result && <ImportSummary data={result} title="Resultado da sincronização" />}
+
+      {selectedProperty && (
+        <BookingList key={selectedProperty.id} property={selectedProperty} refreshKey={bookingsKey} />
+      )}
 
       {formTarget && (
         <SourceForm
