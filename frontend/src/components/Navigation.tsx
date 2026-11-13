@@ -11,6 +11,7 @@ const items: { page: Page; label: string }[] = [
   { page: 'properties', label: 'Imóveis' },
   { page: 'serviceProviders', label: 'Prestadores' },
   { page: 'icalImport', label: 'Reservas iCal' },
+  { page: 'icalSources', label: 'Fontes iCal' },
   { page: 'tasks', label: 'Tarefas' },
 ]
 
