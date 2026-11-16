@@ -22,11 +22,22 @@ export type AssignmentResult = {
   status: string
 }
 
-export async function listTasks(showDeleted = false): Promise<TaskSummary[]> {
-  const response = await api.get<{ data: TaskSummary[] }>('/api/tasks', {
-    params: showDeleted ? { deleted: 'only' } : undefined,
-  })
+export type TaskListOptions = {
+  showDeleted?: boolean
+  from?: string
+  to?: string
+}
 
+export async function listTasks(options: TaskListOptions = {}): Promise<TaskSummary[]> {
+  const params: Record<string, string | number> = {
+    per_page: 100,
+  }
+
+  if (options.showDeleted) params.deleted = 'only'
+  if (options.from) params.from = options.from
+  if (options.to) params.to = options.to
+
+  const response = await api.get<{ data: TaskSummary[] }>('/api/tasks', { params })
   return response.data.data
 }
 

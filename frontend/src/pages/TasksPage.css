@@ -17,3 +17,41 @@
   .tasks-layout { grid-template-columns: 1fr; }
   .tasks-heading { flex-wrap: wrap; }
 }
+
+.tasks-layout-week {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.task-week-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+  padding-bottom: 8px;
+}
+
+.task-week-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(135px, 1fr));
+  gap: 10px;
+  min-width: 980px;
+}
+
+.task-week-day {
+  min-height: 180px;
+  padding: 10px;
+  border: 1px solid #d4d4d8;
+  border-radius: 8px;
+}
+
+.task-week-day h4 {
+  margin: 0 0 10px;
+  text-transform: capitalize;
+}
+
+.task-week-empty {
+  color: #71717a;
+  font-size: 0.9rem;
+}
+
+.task-week-item {
+  border-left: 4px solid #1d4ed8;
+}
