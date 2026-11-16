@@ -22,6 +22,9 @@ export type BookingSource = {
   isActive: boolean
   lastSync: SyncRunSummary | null
   lastSuccessAt: string | null
+  // True when an active url source has no successful sync for longer than staleAfterMinutes.
+  stale: boolean
+  staleAfterMinutes: number
 }
 
 export type BookingSourceChanges = {
@@ -31,6 +34,14 @@ export type BookingSourceChanges = {
 
 // A sync downloads the calendar first, so it may take longer than the default 8 s.
 const SYNC_TIMEOUT_MS = 70_000
+
+// A run still "running" after this was probably interrupted; the next sync closes it.
+export const RUN_INTERRUPTED_AFTER_MS = 5 * 60 * 1000
+
+// Unexpected API failures are recorded with a generic message and the attempt number.
+export function isInternalSyncError(message: string | null): boolean {
+  return message?.startsWith('Erro interno') ?? false
+}
 
 export async function listBookingSources(propertyId: number): Promise<BookingSource[]> {
   const response = await api.get<{ data: BookingSource[] }>(
