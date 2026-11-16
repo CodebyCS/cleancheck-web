@@ -180,6 +180,9 @@ for (const task of tasks) {
       const nextDetail = await getTask(id)
       if (requestId === detailRequestRef.current && selectedIdRef.current === id) {
         setDetail(nextDetail)
+        setProviderId(
+          nextDetail.service_provider_id === null ? '' : String(nextDetail.service_provider_id),
+        )
       }
     } catch (error) {
       if (requestId === detailRequestRef.current && selectedIdRef.current === id) {
@@ -203,6 +206,9 @@ for (const task of tasks) {
       const nextDetail = await getTask(id)
       if (requestId === detailRequestRef.current && selectedIdRef.current === id) {
         setDetail(nextDetail)
+        setProviderId(
+          nextDetail.service_provider_id === null ? '' : String(nextDetail.service_provider_id),
+        )
       }
     } catch (error) {
       if (requestId === detailRequestRef.current && selectedIdRef.current === id) {
@@ -240,7 +246,6 @@ for (const task of tasks) {
         providerId: result.service_provider_id,
         providerName: selectedProvider.name,
       })
-      setProviderId('')
 
     } catch (error) {
       setSaveError(requestError(error, onSessionExpired))
@@ -353,7 +358,16 @@ for (const task of tasks) {
                         <strong>{task.property ?? 'Imóvel sem nome'}</strong>
                         <span>{typeLabel(task.type)} · {dateLabel(task.scheduled_start_at)}</span>
                         <span>Estado: {statusLabel(task.status)}</span>
-                      </button>
+                        <span>Reserva #{task.booking_id}</span>
+                        <span>Prestador: {task.service_provider ?? 'Não atribuído'}</span>
+                        {task.is_overdue && <span className="task-overdue">Em atraso</span>}
+                        {task.completed_at && (
+                          <span>
+                            Concluída em {dateLabel(task.completed_at)}
+                            {task.completed_by ? ` por ${task.completed_by}` : ''}
+                          </span>
+                        )}
+                        </button>
                     </li>
                   ))}
                 </ul>
@@ -387,7 +401,16 @@ for (const task of tasks) {
                                     </strong>
                                     <span>{typeLabel(task.type)}</span>
                                     <span>Estado: {statusLabel(task.status)}</span>
-                                  </button>
+                                    <span>Reserva #{task.booking_id}</span>
+                                    <span>Prestador: {task.service_provider ?? 'Não atribuído'}</span>
+                                    {task.is_overdue && <span className="task-overdue">Em atraso</span>}
+                                    {task.completed_at && (
+                                      <span>
+                                        Concluída em {dateLabel(task.completed_at)}
+                                        {task.completed_by ? ` por ${task.completed_by}` : ''}
+                                      </span>
+                                    )}
+                                    </button>
                                 </li>
                               ))}
                             </ul>
@@ -417,6 +440,7 @@ for (const task of tasks) {
                   <dt>Prazo</dt><dd>{dateLabel(detail.scheduled_end_at)}</dd>
                   <dt>Início real</dt><dd>{dateLabel(detail.started_at)}</dd>
                   <dt>Conclusão real</dt><dd>{dateLabel(detail.completed_at)}</dd>
+                  <dt>Registo atualizado em</dt><dd>{dateLabel(detail.updated_at)}</dd>
                 </dl>
                 {taskActionError && <Message type="error">{taskActionError}</Message>}
 

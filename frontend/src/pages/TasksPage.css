@@ -55,3 +55,8 @@
 .task-week-item {
   border-left: 4px solid #1d4ed8;
 }
+
+.task-overdue {
+  color: #b91c1c;
+  font-weight: 700;
+}
