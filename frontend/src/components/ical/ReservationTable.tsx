@@ -1,5 +1,6 @@
 import type { ReservationStatus } from '../../services/reservations'
 import './ical.css'
+import { formatDate, statusLabels } from '../../utils/reservationFormat'
 
 export type ReservationRow = {
   externalUid: string
@@ -8,18 +9,6 @@ export type ReservationRow = {
   status: ReservationStatus
   nights?: number
   rawSummary?: string | null
-}
-
-const statusLabels: Record<ReservationStatus, string> = {
-  reserved: 'Reservada',
-  blocked: 'Bloqueio',
-  cancelled: 'Cancelada',
-  unknown: 'Desconhecido',
-}
-
-function formatDate(isoDate: string): string {
-  const [year, month, day] = isoDate.split('-')
-  return `${day}/${month}/${year}`
 }
 
 type ReservationTableProps = {
