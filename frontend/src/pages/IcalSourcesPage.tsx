@@ -40,6 +40,7 @@ export function IcalSourcesPage() {
   const [feedback, setFeedback] = useState<Feedback>(null)
   const [result, setResult] = useState<IcalImportResult | null>(null)
   const [bookingsKey, setBookingsKey] = useState(0)
+  const [checkedAt, setCheckedAt] = useState(0)
 
   useEffect(() => {
     let active = true
@@ -70,6 +71,7 @@ export function IcalSourcesPage() {
         if (!active) return
         setSources(items)
         setSourcesError('')
+        setCheckedAt(Date.now())
       })
       .catch((error: unknown) => {
         if (active) setSourcesError(errorMessage(error))
@@ -176,9 +178,14 @@ export function IcalSourcesPage() {
           </div>
         )}
         {propertyId && (
-          <Button onClick={() => setFormTarget({ source: null })} disabled={locked}>
-            + Nova fonte
-          </Button>
+          <>
+            <Button variant="secondary" onClick={reloadSources} disabled={locked || loadingSources}>
+              Atualizar estado
+            </Button>
+            <Button onClick={() => setFormTarget({ source: null })} disabled={locked}>
+              + Nova fonte
+            </Button>
+          </>
         )}
       </div>
 
@@ -213,7 +220,7 @@ export function IcalSourcesPage() {
                 {source.url ? maskSourceUrl(source.url) : 'Importação manual de ficheiros .ics'}
               </div>
 
-              <SyncStatus source={source} />
+              <SyncStatus source={source} checkedAt={checkedAt} />
 
               {source.type === 'url' && (
                 <div className="detail-actions source-actions">
