@@ -9,6 +9,7 @@ import { LoginForm } from './auth/components/LoginForm'
 import { ApiHealthStatus } from './diagnostics/components/ApiHealthStatus'
 import { TasksPage } from './pages/TasksPage'
 import { IcalSourcesPage } from './pages/IcalSourcesPage'
+import { NoticesPage } from './pages/NoticesPage'
 
 
 export default function App() {
@@ -58,6 +59,7 @@ export default function App() {
               {page === 'icalImport' && <IcalImportPage />}
               {page === 'icalSources' && <IcalSourcesPage />}
               {page === 'tasks' && <TasksPage onSessionExpired={handleSessionExpired} />}
+              {page === 'notices' && <NoticesPage />}
             </>
           )}
         </>
