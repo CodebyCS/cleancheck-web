@@ -9,6 +9,7 @@ import type { ServiceProvider } from '../services/serviceProviders'
 import { assignTask, getTask, listTasks, cancelTask, completeTask, restoreTask } from '../services/tasks'
 import type { TaskDetail, TaskSummary } from '../services/tasks'
 import { fieldErrors } from '../services/validation'
+import { getTaskWeekRange, shiftTaskWeek } from '../utils/taskWeek'
 import './TasksPage.css'
 
 type Props = { onSessionExpired: () => void }
@@ -47,6 +48,38 @@ function dateLabel(value: string | null): string {
     : new Intl.DateTimeFormat('pt-PT', { dateStyle: 'short', timeStyle: 'short' }).format(date)
 }
 
+function timeLabel(value: string): string {
+  const date = new Date(value)
+
+  return Number.isNaN(date.getTime())
+    ? 'Hora inválida'
+    : new Intl.DateTimeFormat('pt-PT', {
+        hour: '2-digit',
+        minute: '2-digit',
+      }).format(date)
+}
+
+function localDateKey(value: string): string | null {
+  const date = new Date(value)
+
+  if (Number.isNaN(date.getTime())) return null
+
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+
+  return `${year}-${month}-${day}`
+}
+
+function statusLabel(status: string): string {
+  if (status === 'pending') return 'Pendente'
+  if (status === 'in_progress') return 'Em curso'
+  if (status === 'completed') return 'Concluída'
+  if (status === 'cancelled') return 'Cancelada'
+
+  return status
+}
+
 function typeLabel(value: string): string {
   if (value === 'checkout_cleaning') return 'Limpeza após checkout'
   if (value === 'checkin_inspection') return 'Inspeção antes do check-in'
@@ -71,14 +104,52 @@ export function TasksPage({ onSessionExpired }: Props) {
   const [showDeleted, setShowDeleted] = useState(false)
   const [taskAction, setTaskAction] = useState<'complete' | 'cancel' | 'restore' | null>(null)
   const [taskActionError, setTaskActionError] = useState('')
+  const [weekAnchor, setWeekAnchor] = useState(() => new Date())
+  const [viewMode, setViewMode] = useState<'list' | 'week'>('list')
+  const weekRange = getTaskWeekRange(weekAnchor)
+  const weekDateFormatter = new Intl.DateTimeFormat('pt-PT', { dateStyle: 'medium' })
+  const weekLabel = `${weekDateFormatter.format(weekRange.start)} – ${weekDateFormatter.format(weekRange.end)}` 
 
+  const weekDays = Array.from({ length: 7 }, (_, index) => {
+  const date = new Date(weekRange.start)
+  date.setDate(date.getDate() + index)
+
+  const key = [
+    date.getFullYear(),
+    String(date.getMonth() + 1).padStart(2, '0'),
+    String(date.getDate()).padStart(2, '0'),
+  ].join('-')
+
+  return {
+    date,
+    key,
+    label: new Intl.DateTimeFormat('pt-PT', {
+      weekday: 'long',
+      day: '2-digit',
+      month: 'short',
+    }).format(date),
+  }
+})
+
+const tasksByDay = new Map<string, TaskSummary[]>()
+
+for (const task of tasks) {
+  const key = localDateKey(task.scheduled_start_at)
+  if (!key) continue
+
+  const dayTasks = tasksByDay.get(key) ?? []
+  dayTasks.push(task)
+  tasksByDay.set(key, dayTasks)
+}
 
   const refresh = useCallback(async () => {
     setLoading(true)
     setListError('')
     try {
       const [nextTasks, nextProviders] = await Promise.all([
-        listTasks(showDeleted),
+        listTasks({showDeleted,
+          ...(viewMode === 'week' ? { from: weekRange.from, to: weekRange.to } : {}),
+        }),
         listActiveServiceProviders(),
       ])
       setTasks(nextTasks)
@@ -88,7 +159,7 @@ export function TasksPage({ onSessionExpired }: Props) {
     } finally {
       setLoading(false)
     }
-  }, [onSessionExpired, showDeleted])
+  }, [onSessionExpired, showDeleted, viewMode, weekRange.from, weekRange.to])
 
   useEffect(() => {
     const timer = window.setTimeout(() => { void refresh() }, 0)
@@ -109,6 +180,9 @@ export function TasksPage({ onSessionExpired }: Props) {
       const nextDetail = await getTask(id)
       if (requestId === detailRequestRef.current && selectedIdRef.current === id) {
         setDetail(nextDetail)
+        setProviderId(
+          nextDetail.service_provider_id === null ? '' : String(nextDetail.service_provider_id),
+        )
       }
     } catch (error) {
       if (requestId === detailRequestRef.current && selectedIdRef.current === id) {
@@ -132,6 +206,9 @@ export function TasksPage({ onSessionExpired }: Props) {
       const nextDetail = await getTask(id)
       if (requestId === detailRequestRef.current && selectedIdRef.current === id) {
         setDetail(nextDetail)
+        setProviderId(
+          nextDetail.service_provider_id === null ? '' : String(nextDetail.service_provider_id),
+        )
       }
     } catch (error) {
       if (requestId === detailRequestRef.current && selectedIdRef.current === id) {
@@ -169,7 +246,6 @@ export function TasksPage({ onSessionExpired }: Props) {
         providerId: result.service_provider_id,
         providerName: selectedProvider.name,
       })
-      setProviderId('')
 
     } catch (error) {
       setSaveError(requestError(error, onSessionExpired))
@@ -221,33 +297,133 @@ export function TasksPage({ onSessionExpired }: Props) {
           />
           Mostrar tarefas apagadas
         </label>
-
       </div>
+
+      <div className="task-view-controls">
+        <button
+          type="button"
+          aria-pressed={viewMode === 'list'}
+          onClick={() => setViewMode('list')}
+        >
+          Lista
+        </button>
+        <button
+          type="button"
+          aria-pressed={viewMode === 'week'}
+          onClick={() => setViewMode('week')}
+        >
+          Semana
+        </button>
+      </div>
+
+      {viewMode === 'week' && (
+        <div className="task-week-controls">
+          <button type="button" onClick={() => setWeekAnchor(shiftTaskWeek(weekAnchor, -1))}>
+            Semana anterior
+          </button>
+          <strong>{weekLabel}</strong>
+          <button type="button" onClick={() => setWeekAnchor(shiftTaskWeek(weekAnchor, 1))}>
+            Próxima semana
+          </button>
+          <button type="button" onClick={() => setWeekAnchor(new Date())}>
+            Hoje
+          </button>
+        </div>
+      )}
+
       {confirmation && <Message type="success">A API confirmou a atribuição da tarefa #{confirmation.taskId} a {confirmation.providerName} (prestador #{confirmation.providerId}).</Message>}
       {loading && <Message type="info">A carregar tarefas e prestadores...</Message>}
       {listError && <Message type="error">{listError} <button type="button" onClick={() => void refresh()}>Tentar novamente</button></Message>}
-      {!loading && !listError && tasks.length === 0 && (
+      {viewMode === 'list' && !loading && !listError && tasks.length === 0 && (
         detailError
           ? <Message type="error">{detailError} <button type="button" onClick={() => { void Promise.allSettled([refresh(), refreshDetail()]) }}>Tentar novamente</button></Message>
           : <Message type="info">Ainda não existem tarefas.</Message>
       )}
-      {!loading && !listError && tasks.length > 0 && (
-        <div className="tasks-layout">
+      {!loading && !listError && (viewMode === 'week' || tasks.length > 0) && (
+        <div className={viewMode === 'week' ? 'tasks-layout tasks-layout-week' : 'tasks-layout'}>
+          
           <div>
-            <h3>Lista</h3>
-            <ul className="tasks-list">
-              {tasks.map((task) => (
-                <li key={task.id}>
-                  <button type="button" className="task-item" aria-current={selectedId === task.id ? 'true' : undefined}
-                    onClick={() => void openTask(task.id)}>
-                    <strong>{task.property ?? 'Imóvel sem nome'}</strong>
-                    <span>{typeLabel(task.type)} · {dateLabel(task.scheduled_start_at)}</span>
-                    <span>Estado: {task.status}</span>
-                  </button>
-                </li>
-              ))}
-            </ul>
+            {viewMode === 'list' ? (
+              <>
+                <h3>Lista</h3>
+                <ul className="tasks-list">
+                  {tasks.map((task) => (
+                    <li key={task.id}>
+                      <button
+                        type="button"
+                        className="task-item"
+                        aria-current={selectedId === task.id ? 'true' : undefined}
+                        onClick={() => void openTask(task.id)}
+                      >
+                        <strong>{task.property ?? 'Imóvel sem nome'}</strong>
+                        <span>{typeLabel(task.type)} · {dateLabel(task.scheduled_start_at)}</span>
+                        <span>Estado: {statusLabel(task.status)}</span>
+                        <span>Reserva #{task.booking_id}</span>
+                        <span>Prestador: {task.service_provider ?? 'Não atribuído'}</span>
+                        {task.is_overdue && <span className="task-overdue">Em atraso</span>}
+                        {task.completed_at && (
+                          <span>
+                            Concluída em {dateLabel(task.completed_at)}
+                            {task.completed_by ? ` por ${task.completed_by}` : ''}
+                          </span>
+                        )}
+                        </button>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            ) : (
+              <>
+                <h3>Agenda semanal</h3>
+                <div className="task-week-scroll">
+                  <div className="task-week-grid">
+                    {weekDays.map((day) => {
+                      const dayTasks = tasksByDay.get(day.key) ?? []
+
+                      return (
+                        <section className="task-week-day" key={day.key}>
+                          <h4>{day.label}</h4>
+
+                          {dayTasks.length === 0 ? (
+                            <p className="task-week-empty">Sem tarefas</p>
+                          ) : (
+                            <ul className="tasks-list">
+                              {dayTasks.map((task) => (
+                                <li key={task.id}>
+                                  <button
+                                    type="button"
+                                    className="task-item task-week-item"
+                                    aria-current={selectedId === task.id ? 'true' : undefined}
+                                    onClick={() => void openTask(task.id)}
+                                  >
+                                    <strong>
+                                      {timeLabel(task.scheduled_start_at)} · {task.property ?? 'Imóvel sem nome'}
+                                    </strong>
+                                    <span>{typeLabel(task.type)}</span>
+                                    <span>Estado: {statusLabel(task.status)}</span>
+                                    <span>Reserva #{task.booking_id}</span>
+                                    <span>Prestador: {task.service_provider ?? 'Não atribuído'}</span>
+                                    {task.is_overdue && <span className="task-overdue">Em atraso</span>}
+                                    {task.completed_at && (
+                                      <span>
+                                        Concluída em {dateLabel(task.completed_at)}
+                                        {task.completed_by ? ` por ${task.completed_by}` : ''}
+                                      </span>
+                                    )}
+                                    </button>
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                        </section>
+                      )
+                    })}
+                  </div>
+                </div>
+              </>
+            )}
           </div>
+
           <div className="task-detail">
             <h3>Detalhe</h3>
             {selectedId === null && <p>Selecione uma tarefa para ver o detalhe e atribuir um prestador.</p>}
@@ -264,6 +440,7 @@ export function TasksPage({ onSessionExpired }: Props) {
                   <dt>Prazo</dt><dd>{dateLabel(detail.scheduled_end_at)}</dd>
                   <dt>Início real</dt><dd>{dateLabel(detail.started_at)}</dd>
                   <dt>Conclusão real</dt><dd>{dateLabel(detail.completed_at)}</dd>
+                  <dt>Registo atualizado em</dt><dd>{dateLabel(detail.updated_at)}</dd>
                 </dl>
                 {taskActionError && <Message type="error">{taskActionError}</Message>}
 
