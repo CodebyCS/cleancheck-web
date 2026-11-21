@@ -32,6 +32,10 @@ export type TaskListOptions = {
   showDeleted?: boolean
   from?: string
   to?: string
+  propertyId?: number
+  unassigned?: boolean
+  overdue?: boolean
+  inConflict?: boolean
 }
 
 type TaskListResponse = {
@@ -42,11 +46,15 @@ type TaskListResponse = {
 }
 
 export async function listTasks(options: TaskListOptions = {}): Promise<TaskSummary[]> {
-  const params: Record<string, string | number> = {
+  const params: Record<string, string | number | boolean> = {
     per_page: 100,
     ...(options.showDeleted ? { deleted: 'only' } : {}),
     ...(options.from ? { from: options.from } : {}),
     ...(options.to ? { to: options.to } : {}),
+    ...(options.propertyId ? { property_id: options.propertyId } : {}),
+    ...(options.unassigned ? { unassigned: 1} : {}),
+    ...(options.overdue ? { overdue: 1} : {}),
+    ...(options.inConflict ? { inConflict: 1} : {}),
   }
 
   const firstResponse = await api.get<TaskListResponse>('/api/tasks', {
@@ -65,6 +73,16 @@ export async function listTasks(options: TaskListOptions = {}): Promise<TaskSumm
   }
 
   return tasks
+}
+
+export async function createManualInspection(bookingId: number): Promise<TaskDetail> {
+  await api.get('/sanctum/csrf-cookie')
+
+  const response = await api.post<{ data: TaskDetail }>('/api/tasks', {
+    booking_id: bookingId,
+  })
+
+  return response.data.data
 }
 
 export async function getTask(id: number): Promise<TaskDetail> {

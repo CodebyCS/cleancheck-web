@@ -60,3 +60,144 @@
   color: #b91c1c;
   font-weight: 700;
 }
+
+.manual-inspection-form {
+  margin: 18px 0;
+  padding: 16px;
+  border: 1px solid #d4d4d8;
+  border-radius: 8px;
+}
+
+.manual-inspection-form h3 {
+  margin: 0 0 8px;
+}
+
+.manual-inspection-form > p {
+  margin: 0 0 14px;
+  color: #71717a;
+}
+
+.manual-inspection-form form {
+  display: grid;
+  gap: 10px;
+}
+
+.manual-inspection-form label {
+  font-weight: 600;
+}
+
+.manual-inspection-form select {
+  width: 100%;
+  max-width: 520px;
+  padding: 8px 10px;
+  font: inherit;
+}
+
+.manual-inspection-form button[type='submit'] {
+  justify-self: start;
+  margin-top: 4px;
+}
+.manual-inspection-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgba(15, 23, 42, 0.78);
+}
+
+.manual-inspection-form {
+  width: min(100%, 560px);
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
+  margin: 0;
+  padding: 22px;
+  border: 1px solid #d4d4d8;
+  border-radius: 12px;
+  background: #fff;
+  color: #172033;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+}
+
+.manual-inspection-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.manual-inspection-modal-header h3 {
+  margin: 0 0 8px;
+}
+
+.manual-inspection-modal-header p {
+  margin: 0;
+  color: #71717a;
+}
+
+.manual-inspection-form form {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.manual-inspection-form label {
+  display: block;
+  margin: 0;
+  font-weight: 600;
+}
+
+.manual-inspection-form select {
+  width: 100%;
+  max-width: none;
+  padding: 10px 12px;
+  font: inherit;
+}
+
+.manual-inspection-form button[type='submit'] {
+  justify-self: start;
+  margin-top: 8px;
+}
+
+@media (max-width: 560px) {
+  .manual-inspection-backdrop {
+    align-items: end;
+    padding: 0;
+  }
+
+  .manual-inspection-form {
+    width: 100%;
+    max-height: 90vh;
+    padding: 18px;
+    border-radius: 14px 14px 0 0;
+  }
+
+  .manual-inspection-modal-header {
+    gap: 10px;
+  }
+}
+
+.task-item.task-overdue {
+  border-color: #dc2626;
+  background: #fef2f2;
+  color: #7f1d1d;
+}
+
+.task-item.task-overdue .task-overdue-label {
+  width: fit-content;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #dc2626;
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.task-week-item.task-overdue {
+  border-left-color: #dc2626;
+}
