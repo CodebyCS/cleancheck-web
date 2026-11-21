@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="510" height="176" viewBox="0 0 510 176" fill="none" role="img" aria-labelledby="title desc">
+  <title id="title">CleanCheck</title>
+  <desc id="desc">Logomarca CleanCheck: símbolo verde de uma casa com um visto e o nome da marca em azul escuro.</desc>
+  <defs>
+    <linearGradient id="tile" x1="18" y1="18" x2="158" y2="158" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0B747A"/>
+      <stop offset="1" stop-color="#075D65"/>
+    </linearGradient>
+  </defs>
+  <g transform="translate(8 8)">
+    <rect width="160" height="160" rx="42" fill="url(#tile)"/>
+    <path d="M35 77.5 80 41l45 36.5v43a8 8 0 0 1-8 8H43a8 8 0 0 1-8-8v-43Z" stroke="#fff" stroke-width="9" stroke-linejoin="round"/>
+    <path d="m60 91 14 14 28-30" stroke="#fff" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M122 37v17M113.5 45.5h17" stroke="#B9DCDD" stroke-width="5" stroke-linecap="round"/>
+  </g>
+  <text x="198" y="108" fill="#124D54" font-family="Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="59" font-weight="750" letter-spacing="-2.8">Clean<tspan fill="#087078">Check</tspan></text>
+</svg>
