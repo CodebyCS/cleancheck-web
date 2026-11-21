@@ -6,12 +6,12 @@ import { Message } from '../Message'
 import { listBookings } from '../../services/bookings'
 import type { Booking } from '../../services/bookings'
 import { createManualInspection, listTasks } from '../../services/tasks'
-import type { TaskSummary } from "../../services/tasks"
-import { taskWindow } from "../../utils/taskWindow"
+import type { TaskSummary } from '../../services/tasks'
+import { taskWindow } from '../../utils/taskWindow'
 import { fieldErrors } from '../../services/validation'
 import { listProperties } from '../../services/properties'
 import type { Property } from '../../services/properties'
-import { DEFAULT_TIMEZONE } from "../../utils/timezones"
+import { DEFAULT_TIMEZONE } from '../../utils/timezones'
 
 type Props = {
   onCreated: () => void
@@ -133,25 +133,25 @@ export function ManualInspectionForm({ onCreated }: Props) {
     }
   }, [])
 
-  useEffect(() => {
+  function handlePropertyChange(nextPropertyId: string) {
+    setPropertyId(nextPropertyId)
     setBookings([])
     setBookingId('')
     setLoadingError('')
     setSubmitError('')
     setSuccess('')
+    setBookingsLoading(nextPropertyId !== '')
+  }
 
+  useEffect(() => {
     const numericPropertyId = Number(propertyId)
     const selectedProperty = properties.find(
       (property) => property.id === numericPropertyId,
     )
 
-    if (!propertyId || !selectedProperty) {
-      setBookingsLoading(false)
-      return
-    }
+    if (!propertyId || !selectedProperty) return
 
     let active = true
-    setBookingsLoading(true)
 
     Promise.all([
       listBookings(numericPropertyId),
@@ -187,7 +187,6 @@ export function ManualInspectionForm({ onCreated }: Props) {
     }
   }, [propertyId, properties])
 
-
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
 
@@ -210,7 +209,7 @@ export function ManualInspectionForm({ onCreated }: Props) {
     }
   }
 
-    return (
+  return (
     <>
       <Button
         type="button"
@@ -267,7 +266,7 @@ export function ManualInspectionForm({ onCreated }: Props) {
                 id="inspection-property"
                 value={propertyId}
                 disabled={propertiesLoading || submitting}
-                onChange={(event) => setPropertyId(event.target.value)}
+                onChange={(event) => handlePropertyChange(event.target.value)}
                 required
               >
                 <option value="">Selecione um imóvel</option>
