@@ -568,12 +568,6 @@
     color: #993e2a;
   }
 
-  .provider-access {
-    max-width: 600px;
-    margin: 60px auto;
-    padding: 24px;
-  }
-
   .admin-shell button:focus-visible {
     outline: 2px solid #16899b;
     outline-offset: 3px;
@@ -609,5 +603,37 @@
     .admin-date {
       display: none;
     }
+  }
+}
+
+@layer components {
+  .provider-card {
+    width: 100%;
+    max-width: 430px;
+    padding: 30px;
+    border: 1px solid #dbe6e7;
+    border-radius: 12px;
+    background: white;
+    box-shadow: 0 22px 60px rgb(18 60 66 / 12%);
+  }
+
+  .provider-title {
+    margin: 0 0 16px;
+    color: #164a52;
+    font-size: 23px;
+    font-weight: 600;
+  }
+
+  .provider-description {
+    margin: 0 0 24px;
+    color: #45666b;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  .provider-message {
+    margin: 16px 0 0;
+    color: #45666b;
+    font-size: 13px;
   }
 }
