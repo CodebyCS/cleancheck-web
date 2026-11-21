@@ -572,38 +572,6 @@
     outline: 2px solid #16899b;
     outline-offset: 3px;
   }
-
-  @media (max-width: 760px) {
-    .admin-sidebar {
-      position: static;
-      width: 100%;
-    }
-
-    .admin-shell {
-      flex-direction: column;
-    }
-
-    .admin-main {
-      width: 100%;
-      margin-left: 0;
-    }
-
-    .admin-user {
-      display: none;
-    }
-
-    .admin-topbar {
-      padding: 12px 16px;
-    }
-
-    .admin-workspace {
-      padding: 20px 16px;
-    }
-
-    .admin-date {
-      display: none;
-    }
-  }
 }
 
 @layer components {
@@ -635,5 +603,127 @@
     margin: 16px 0 0;
     color: #45666b;
     font-size: 13px;
+  }
+}
+
+@layer components {
+  .admin-mobile-navigation {
+    display: none;
+  }
+
+  .admin-menu-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    min-height: 36px;
+    padding: 8px 12px;
+    border: 1px solid var(--brand-border);
+    border-radius: 6px;
+    background: white;
+    color: var(--brand-primary);
+    font: inherit;
+    font-size: 13px;
+    cursor: pointer;
+  }
+
+  .admin-menu-toggle:hover {
+    border-color: var(--brand-primary);
+    background: var(--brand-primary);
+    color: white;
+  }
+
+  .admin-menu-bars {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    width: 18px;
+  }
+
+  .admin-menu-bars > span {
+    display: block;
+    width: 100%;
+    height: 2px;
+    border-radius: 2px;
+    background: currentColor;
+  }
+
+  #admin-mobile-menu {
+    margin-top: 10px;
+    max-height: 50dvh;
+    overflow-y: auto;
+    border-radius: 8px;
+    background: #05616a;
+  }
+
+  @media (max-width: 765px), (max-height: 742px) {
+    .admin-sidebar {
+      display: none;
+    }
+
+    .admin-main {
+      width: 100%;
+      margin-left: 0;
+    }
+
+    .admin-topbar {
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 12px;
+      padding: 12px 16px;
+    }
+
+    .admin-mobile-navigation {
+      display: block;
+      margin: -12px -16px 0;
+      padding: 12px 16px;
+      background: var(--brand-primary);
+      border-bottom: 1px solid rgb(255 255 255 / 12%);
+    }
+
+    .admin-menu-toggle {
+      border-color: rgb(255 255 255 / 30%);
+      background: rgb(255 255 255 / 8%);
+      color: white;
+    }
+
+    .admin-menu-toggle:hover {
+      border-color: rgb(255 255 255 / 55%);
+      background: rgb(255 255 255 / 18%);
+      color: white;
+    }
+
+    .admin-menu-toggle[aria-expanded='true'] {
+      background: rgb(255 255 255 / 18%);
+    }
+
+    .admin-mobile-navigation .admin-menu-toggle:focus-visible {
+      outline: 2px solid white;
+      outline-offset: 3px;
+    }
+
+    #admin-mobile-menu {
+      border: 1px solid rgb(255 255 255 / 15%);
+      background: rgb(0 0 0 / 8%);
+    }
+
+    .admin-breadcrumb {
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .admin-topbar-actions {
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .admin-workspace {
+      padding: 20px 16px;
+    }
+
+    .admin-date {
+      display: none;
+    }
   }
 }
