@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import type { AppUser } from '../api'
 import { Navigation } from '../components/Navigation'
 import { pageTitles } from '../components/navigationConfig'
@@ -29,10 +29,22 @@ export function AuthenticatedApp({
   onSessionExpired,
 }: AuthenticatedAppProps) {
   const [page, setPage] = useState<Page>('dashboard')
+  const [menuOpen, setMenuOpen] = useState(false)
+  const menuButtonRef = useRef<HTMLButtonElement>(null)
 
   const today = new Intl.DateTimeFormat('pt-PT', {
     dateStyle: 'short',
   }).format(new Date())
+
+  function closeMobileMenu() {
+    setMenuOpen(false)
+    menuButtonRef.current?.focus()
+  }
+
+  function navigateFromMobile(nextPage: Page) {
+    setPage(nextPage)
+    closeMobileMenu()
+  }
 
   if (user.role === 'service_provider') {
     return (
@@ -77,6 +89,40 @@ export function AuthenticatedApp({
 
       <div className="admin-main">
         <header className="admin-topbar">
+          <div
+            className="admin-mobile-navigation"
+            onKeyDown={(event) => {
+              if (event.key === 'Escape' && menuOpen) {
+                event.preventDefault()
+                closeMobileMenu()
+              }
+            }}
+          >
+            <button
+              ref={menuButtonRef}
+              className="admin-menu-toggle"
+              type="button"
+              aria-expanded={menuOpen}
+              aria-controls="admin-mobile-menu"
+              aria-label={menuOpen ? 'Fechar navegação' : 'Abrir navegação'}
+              onClick={() => setMenuOpen((open) => !open)}
+            >
+              <span className="admin-menu-bars" aria-hidden="true">
+                <span />
+                <span />
+                <span />
+              </span>
+
+              <span>Menu</span>
+            </button>
+
+            <div id="admin-mobile-menu" hidden={!menuOpen}>
+              <Navigation
+                current={page}
+                onNavigate={navigateFromMobile}
+              />
+            </div>
+          </div>
           <div className="admin-breadcrumb">
             <span>Clean &amp; Check Admin</span>
             <span aria-hidden="true">/</span>
