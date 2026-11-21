@@ -251,73 +251,111 @@ export function TasksPage({ onSessionExpired }: Props) {
 
 
   return (
-    <section className="tasks-page">
-      <div className="tasks-heading">
-        <h2>Tarefas</h2>
-        <Button variant="secondary" onClick={() => void refresh()} disabled={loading}>Atualizar</Button>
-        <label>
-          <input
-            type="checkbox"
-            checked={showDeleted}
-            onChange={(event) => setShowDeleted(event.target.checked)}
-          />
-          Mostrar tarefas apagadas
-        </label>
-      </div>
+    <section className="tasks-page" aria-labelledby="tasks-title">
+      <header className="tasks-heading">
+        <div>
+          <h1 id="tasks-title">Tarefas</h1>
+          <p>Acompanhe as limpezas e inspeções da operação.</p>
+        </div>
 
-      <ManualInspectionForm onCreated={() => void refresh()} />
+        <div className="tasks-actions">
+          <Button
+            variant="secondary"
+            onClick={() => void refresh()}
+            disabled={loading}
+          >
+            {loading ? 'A atualizar...' : 'Atualizar'}
+          </Button>
 
-      <fieldset className="task-filters">
-        <legend>Filtrar tarefas</legend>
+          <ManualInspectionForm onCreated={() => void refresh()} />
+        </div>
+      </header>
 
-        <label>
-          <input
-            type="checkbox"
-            checked={unassignedOnly}
-            onChange={(event) => setUnassignedOnly(event.target.checked)}
-          />
-          Não atribuídas
-        </label>
+      <div className="tasks-toolbar">
+        <fieldset className="task-filters">
+          <legend>Filtrar tarefas</legend>
 
-        <label>
-          <input
-            type="checkbox"
-            checked={overdueOnly}
-            onChange={(event) => setOverdueOnly(event.target.checked)}
-          />
-          Atrasadas
-        </label>
-      </fieldset>
+          <label className="task-filter-option">
+            <input
+              type="checkbox"
+              checked={unassignedOnly}
+              onChange={(event) => setUnassignedOnly(event.target.checked)}
+            />
+            <span>Não atribuídas</span>
+          </label>
 
-      <div className="task-view-controls">
-        <button
-          type="button"
-          aria-pressed={viewMode === 'list'}
-          onClick={() => setViewMode('list')}
+          <label className="task-filter-option">
+            <input
+              type="checkbox"
+              checked={overdueOnly}
+              onChange={(event) => setOverdueOnly(event.target.checked)}
+            />
+            <span>Atrasadas</span>
+          </label>
+
+          <label className="task-filter-option">
+            <input
+              type="checkbox"
+              checked={showDeleted}
+              onChange={(event) => setShowDeleted(event.target.checked)}
+            />
+            <span>Mostrar apagadas</span>
+          </label>
+        </fieldset>
+
+        <div
+          className="task-view-controls"
+          role="group"
+          aria-label="Apresentação das tarefas"
         >
-          Lista
-        </button>
-        <button
-          type="button"
-          aria-pressed={viewMode === 'week'}
-          onClick={() => setViewMode('week')}
-        >
-          Semana
-        </button>
+          <button
+            type="button"
+            aria-pressed={viewMode === 'list'}
+            onClick={() => setViewMode('list')}
+          >
+            Lista
+          </button>
+
+          <button
+            type="button"
+            aria-pressed={viewMode === 'week'}
+            onClick={() => setViewMode('week')}
+          >
+            Semana
+          </button>
+        </div>
       </div>
 
       {viewMode === 'week' && (
         <div className="task-week-controls">
-          <button type="button" onClick={() => setWeekAnchor(shiftTaskWeek(weekAnchor, -1))}>
-            Semana anterior
-          </button>
           <strong>{weekLabel}</strong>
-          <button type="button" onClick={() => setWeekAnchor(shiftTaskWeek(weekAnchor, 1))}>
-            Próxima semana
-          </button>
-          <button type="button" onClick={() => setWeekAnchor(new Date())}>
-            Hoje
-          </button>
+
+          <div className="tasks-actions">
+            <Button
+              variant="secondary"
+              onClick={() =>
+                setWeekAnchor(shiftTaskWeek(weekAnchor, -1))
+              }
+            >
+              Anterior
+            </Button>
+
+            <Button
+              variant="secondary"
+              onClick={() => setWeekAnchor(new Date())}
+            >
+              Hoje
+            </Button>
+
+            <Button
+              variant="secondary"
+              onClick={() =>
+                setWeekAnchor(shiftTaskWeek(weekAnchor, 1))
+              }
+            >
+              Seguinte
+            </Button>
+          </div>
         </div>
       )}
 
