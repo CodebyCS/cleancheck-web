@@ -17,16 +17,16 @@
 
 .tasks-heading h1 {
   margin: 0;
-  color: #183f48;
-  font-size: 25px;
-  font-weight: 600;
+  color: var(--text-heading);
+  font-size: var(--text-title);
+  font-weight: var(--weight-semibold);
   letter-spacing: -0.6px;
 }
 
 .tasks-heading p {
   margin: 6px 0 0;
-  color: #71868c;
-  font-size: 13px;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
   line-height: 1.5;
 }
 
@@ -62,11 +62,12 @@
 }
 
 .task-filters legend {
+  font-family: var(--font-mono);
   margin-bottom: 10px;
   padding: 0;
-  color: #71868c;
-  font-size: 11px;
-  font-weight: 600;
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
   letter-spacing: 0.6px;
   text-transform: uppercase;
 }
@@ -76,8 +77,8 @@
   align-items: center;
   gap: 8px;
   margin: 0;
-  color: #45666b;
-  font-size: 13px;
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
   cursor: pointer;
 }
 
@@ -107,9 +108,9 @@
   border: 0;
   border-radius: 5px;
   background: transparent;
-  color: #45666b;
+  color: var(--text-secondary);
   font: inherit;
-  font-size: 13px;
+  font-size: var(--text-sm);
   cursor: pointer;
 }
 
@@ -132,9 +133,9 @@
 }
 
 .task-week-controls > strong {
-  color: #45666b;
-  font-size: 14px;
-  font-weight: 600;
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
 }
 
 .tasks-layout {
@@ -150,9 +151,9 @@
 
 .tasks-layout h3 {
   margin: 0 0 16px;
-  color: #183f48;
-  font-size: 16px;
-  font-weight: 600;
+  color: var(--text-heading);
+  font-size: var(--text-base);
+  font-weight: var(--weight-semibold);
 }
 
 .tasks-list {
@@ -171,7 +172,7 @@
   border: 1px solid #d9e5e7;
   border-radius: 8px;
   background: white;
-  color: #45666b;
+  color: var(--text-secondary);
   font: inherit;
   text-align: left;
   overflow-wrap: anywhere;
@@ -179,13 +180,13 @@
 }
 
 .task-item strong {
-  color: #164a52;
-  font-size: 14px;
-  font-weight: 600;
+  color: var(--text-heading);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
 }
 
 .task-item span {
-  font-size: 12px;
+  font-size: var(--text-xs);
   line-height: 1.5;
 }
 
@@ -199,8 +200,8 @@
   border: 1px solid #d9e5e7;
   border-radius: 8px;
   background: white;
-  color: #45666b;
-  font-size: 13px;
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
   line-height: 1.6;
 }
 
@@ -211,8 +212,8 @@
 }
 
 .task-fields dt {
-  color: #183f48;
-  font-weight: 600;
+  color: var(--text-heading);
+  font-weight: var(--weight-semibold);
 }
 
 .task-fields dd {
@@ -234,13 +235,13 @@
   border: 1px solid #d1dfe0;
   border-radius: 6px;
   background: white;
-  color: #45666b;
+  color: var(--text-secondary);
   font: inherit;
 }
 
 .task-limitation {
-  color: #71868c;
-  font-size: 12px;
+  color: var(--text-muted);
+  font-size: var(--text-xs);
 }
 
 .tasks-page > .message {
@@ -318,8 +319,8 @@
 }
 
 .task-week-empty {
-  color: #71717a;
-  font-size: 0.9rem;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
 }
 
 .task-week-item {
@@ -327,15 +328,8 @@
 }
 
 .task-overdue {
-  color: #b91c1c;
-  font-weight: 700;
-}
-
-.manual-inspection-form {
-  margin: 18px 0;
-  padding: 16px;
-  border: 1px solid #d4d4d8;
-  border-radius: 8px;
+  color: var(--text-danger);
+  font-weight: var(--weight-bold);
 }
 
 .manual-inspection-form h3 {
@@ -344,29 +338,9 @@
 
 .manual-inspection-form > p {
   margin: 0 0 14px;
-  color: #71717a;
+  color: var(--text-muted);
 }
 
-.manual-inspection-form form {
-  display: grid;
-  gap: 10px;
-}
-
-.manual-inspection-form label {
-  font-weight: 600;
-}
-
-.manual-inspection-form select {
-  width: 100%;
-  max-width: 520px;
-  padding: 8px 10px;
-  font: inherit;
-}
-
-.manual-inspection-form button[type='submit'] {
-  justify-self: start;
-  margin-top: 4px;
-}
 .manual-inspection-backdrop {
   position: fixed;
   inset: 0;
@@ -386,7 +360,7 @@
   border: 1px solid #d4d4d8;
   border-radius: 12px;
   background: #fff;
-  color: #172033;
+  color: var(--text-body);
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
 }
 
@@ -404,7 +378,7 @@
 
 .manual-inspection-modal-header p {
   margin: 0;
-  color: #71717a;
+  color: var(--text-muted);
 }
 
 .manual-inspection-form form {
@@ -419,7 +393,7 @@
 .manual-inspection-form label {
   display: block;
   margin: 0;
-  font-weight: 600;
+  font-weight: var(--weight-semibold);
 }
 
 .manual-inspection-form select {
@@ -455,7 +429,7 @@
 .task-item.task-overdue {
   border-color: #dc2626;
   background: #fef2f2;
-  color: #7f1d1d;
+  color: var(--text-danger);
 }
 
 .task-item.task-overdue .task-overdue-label {
@@ -464,8 +438,8 @@
   border-radius: 999px;
   background: #dc2626;
   color: #fff;
-  font-size: 0.8rem;
-  font-weight: 700;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
 }
 
 .task-week-item.task-overdue {

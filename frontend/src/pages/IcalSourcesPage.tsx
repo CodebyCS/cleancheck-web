@@ -156,7 +156,7 @@ export function IcalSourcesPage() {
     <section>
       <div className="records-toolbar">
         <div>
-          <h2>Fontes iCal</h2>
+          <h2 className="page-title">Fontes iCal</h2>
           <p className="record-card-meta">Calendários do Airbnb sincronizados por imóvel.</p>
         </div>
         {!loadingProperties && !propertiesError && properties.length > 0 && (

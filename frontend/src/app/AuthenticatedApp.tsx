@@ -48,13 +48,28 @@ export function AuthenticatedApp({
 
   if (user.role === 'service_provider') {
     return (
-      <main className="provider-access">
-        <h1>Olá, {user.name}</h1>
-        <p>Esta área é reservada a administradores e supervisores.</p>
-        <button disabled={busy} onClick={() => void onLogout()}>
-          {busy ? 'A terminar...' : 'Terminar sessão'}
-        </button>
-        {message && <p role="status">{message}</p>}
+      <main className="login-page">
+        <div className="login-api-status">
+          <ApiHealthStatus />
+        </div>
+
+        <div className="provider-card">
+          <img className="login-logo" src="/cleancheck-logo.svg" alt="CleanCheck" />
+          <h1 className="provider-title">Olá, {user.name}</h1>
+          <p className="provider-description">
+            Esta área é reservada a administradores e supervisores.
+            Utiliza a aplicação mobile para consultar as tuas tarefas.
+          </p>
+          <Button
+            variant="secondary"
+            loading={busy}
+            loadingText="A terminar..."
+            onClick={() => void onLogout()}
+          >
+            Terminar sessão
+          </Button>
+          {message && <p className="provider-message" role="status">{message}</p>}
+        </div>
       </main>
     )
   }

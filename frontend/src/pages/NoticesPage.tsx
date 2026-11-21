@@ -84,7 +84,7 @@ export function NoticesPage() {
 
   return (
     <section>
-      <h2>Avisos</h2>
+      <h2 className="page-title">Avisos</h2>
       <p>{unreadCount === 1 ? '1 aviso por ler' : `${unreadCount} avisos por ler`}</p>
 
       <div className="notices-toolbar">

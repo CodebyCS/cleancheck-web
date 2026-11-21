@@ -50,7 +50,7 @@
 
 .record-card:hover,
 .record-card.selected {
-  border-color: #1d4ed8;
+  border-color: var(--brand-primary);
 }
 
 .record-card.inactive {
@@ -61,7 +61,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  font-weight: 600;
+  font-weight: var(--weight-semibold);
   overflow-wrap: anywhere;
 }
 
@@ -70,8 +70,8 @@
   display: block;
   overflow-wrap: anywhere;
   margin-top: 4px;
-  font-size: 0.85rem;
-  opacity: 0.75;
+  font-size: var(--text-sm);
+  color: var(--text-muted);
 }
 
 .detail-panel {
@@ -121,11 +121,11 @@
   gap: 2px;
   padding: 7px 0;
   border-bottom: 1px solid var(--border, #e5e4e7);
-  font-size: 0.9rem;
+  font-size: var(--text-sm);
 }
 
 .detail-row dt {
-  opacity: 0.7;
+  color: var(--text-muted);
 }
 
 .detail-row dd {
@@ -146,7 +146,7 @@
   border: 1px dashed var(--border, #d4d4d8);
   border-radius: 12px;
   text-align: center;
-  opacity: 0.7;
+  color: var(--text-muted);
 }
 
 .form-grid {
@@ -167,12 +167,14 @@
 }
 
 .schedule-fieldset legend {
+  font-family: var(--font-mono);
   padding: 0 6px;
-  font-weight: 600;
+  font-weight: var(--weight-semibold);
+  font-size: var(--text-xs);
 }
 
 .form-hint {
   margin: 4px 0 12px;
-  font-size: 0.85rem;
-  opacity: 0.8;
+  font-size: var(--text-sm);
+  color: var(--text-muted);
 }
