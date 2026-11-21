@@ -30,6 +30,7 @@ As permissões por perfil e as funcionalidades de negócio serão desenvolvidas 
 - Axios
 - Node.js
 - npm
+- Tailwind CSS
 
 Após a criação da aplicação, as dependências e os requisitos de versão encontram-se no ficheiro `package.json`. O ficheiro `package-lock.json` regista as versões utilizadas pelo projeto.
 

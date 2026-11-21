@@ -27,12 +27,19 @@ export function LoginForm({ busy, onLogin }: LoginFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit}>
-      <h2>Entrar</h2>
+    <form className="login-card" onSubmit={handleSubmit}>
+      <img
+        className="login-logo"
+        src="/cleancheck-logo.svg"
+        alt="CleanCheck"
+      />
 
-      <label>
+      <h2 className="login-title">Entrar</h2>
+
+      <label className="login-label">
         Email
         <input
+          className="login-input"
           type="email"
           autoComplete="username"
           value={email}
@@ -42,9 +49,10 @@ export function LoginForm({ busy, onLogin }: LoginFormProps) {
         />
       </label>
 
-      <label>
+      <label className="login-label">
         Password
         <input
+          className="login-input"
           type="password"
           autoComplete="current-password"
           value={password}
@@ -54,17 +62,22 @@ export function LoginForm({ busy, onLogin }: LoginFormProps) {
         />
       </label>
 
-      <label>
+      <label className="login-checkbox-label">
         <input
+          className="login-checkbox"
           type="checkbox"
           checked={remember}
           onChange={(event) => setRemember(event.target.checked)}
           disabled={busy}
         />
-        Lembrar-me durante 14 dias
+        <span>Lembrar-me durante 14 dias</span>
       </label>
 
-      <button disabled={busy} type="submit">
+      <button
+        className="login-button"
+        disabled={busy}
+        type="submit"
+      >
         {busy ? 'A entrar...' : 'Entrar'}
       </button>
     </form>

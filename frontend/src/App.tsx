@@ -1,73 +1,35 @@
-import { useState } from 'react'
-import { Navigation } from './components/Navigation'
-import type { Page } from './components/Navigation'
-import { PropertiesPage } from './pages/PropertiesPage'
-import { ServiceProvidersPage } from './pages/ServiceProvidersPage'
-import { IcalImportPage } from './pages/IcalImportPage'
 import { useAuth } from './auth/hooks/useAuth'
-import { LoginForm } from './auth/components/LoginForm'
-import { ApiHealthStatus } from './diagnostics/components/ApiHealthStatus'
-import { TasksPage } from './pages/TasksPage'
-import { IcalSourcesPage } from './pages/IcalSourcesPage'
-import { NoticesPage } from './pages/NoticesPage'
-
+import { LoginPage } from './auth/pages/LoginPage'
+import { AuthenticatedApp } from './app/AuthenticatedApp'
 
 export default function App() {
-  const [page, setPage] = useState<Page>('properties')
-  const {
-    user,
-    message,
-    ready,
-    busy,
-    login,
-    logout,
-    handleSessionExpired,
-  } = useAuth()
+  const auth = useAuth()
+
+  if (!auth.ready) {
+    return (
+      <main className="login-page">
+        <p className="login-loading">A verificar a sessão...</p>
+      </main>
+    )
+  }
+
+  if (!auth.user) {
+    return (
+      <LoginPage
+        busy={auth.busy}
+        message={auth.message}
+        onLogin={auth.login}
+      />
+    )
+  }
 
   return (
-  
-    <main style={{ padding: 24 }}>
-      <h1>CleanCheck</h1>
-
-      <ApiHealthStatus />
-
-      <hr />
-
-      {!ready ? (
-        <p>A verificar a sessão...</p>
-      ) : user ? (
-        <>
-          <section>
-            <h2>Olá, {user.name}</h2>
-            <p>{user.email}</p>
-            <p>Perfil: {user.role}</p>
-
-            <button disabled={busy} onClick={() => void logout()}>
-              {busy ? 'A terminar...' : 'Sair'}
-            </button>
-          </section>
-
-          <hr />
-
-          {user.role === 'service_provider' ? (
-            <p>Esta área é reservada a administradores e supervisores.</p>
-          ) : (
-            <>
-              <Navigation current={page} onNavigate={setPage} />
-              {page === 'properties' && <PropertiesPage />}
-              {page === 'serviceProviders' && <ServiceProvidersPage />}
-              {page === 'icalImport' && <IcalImportPage />}
-              {page === 'icalSources' && <IcalSourcesPage />}
-              {page === 'tasks' && <TasksPage onSessionExpired={handleSessionExpired} />}
-              {page === 'notices' && <NoticesPage />}
-            </>
-          )}
-        </>
-      ) : (
-        <LoginForm busy={busy} onLogin={login} />
-      )}
-
-      {message && <p role="status">{message}</p>}
-    </main>
+    <AuthenticatedApp
+      user={auth.user}
+      busy={auth.busy}
+      message={auth.message}
+      onLogout={auth.logout}
+      onSessionExpired={auth.handleSessionExpired}
+    />
   )
 }
