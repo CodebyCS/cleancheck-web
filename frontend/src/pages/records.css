@@ -1,0 +1,180 @@
+.records-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.records-toolbar .field {
+  margin-bottom: 0;
+  min-width: 180px;
+}
+
+.records-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  gap: 16px;
+  align-items: start;
+  text-align: left;
+}
+
+@media (max-width: 900px) {
+  .records-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.records-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.record-card {
+  display: block;
+  width: 100%;
+  padding: 14px 16px;
+  border: 1px solid var(--border, #d4d4d8);
+  border-radius: 10px;
+  background: var(--bg, #fff);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.record-card:hover,
+.record-card.selected {
+  border-color: var(--brand-primary);
+}
+
+.record-card.inactive {
+  opacity: 0.6;
+}
+
+.record-card-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: var(--weight-semibold);
+  overflow-wrap: anywhere;
+}
+
+.record-card-meta {
+  /* Block so each line starts on its own row inside the card button. */
+  display: block;
+  overflow-wrap: anywhere;
+  margin-top: 4px;
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+.detail-panel {
+  padding: 18px;
+  border: 1px solid var(--border, #d4d4d8);
+  border-radius: 12px;
+  background: var(--bg, #fff);
+}
+
+/* Sticky only beside the list. The panel scrolls inside itself so the
+   Edit/Deactivate buttons stay reachable when the content is long. */
+@media (min-width: 901px) {
+  .detail-panel {
+    position: sticky;
+    top: 16px;
+    max-height: calc(100vh - 32px);
+    overflow-y: auto;
+  }
+}
+
+.detail-panel h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 12px;
+  overflow-wrap: anywhere;
+}
+
+.detail-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.detail-header h3 {
+  margin: 0;
+}
+
+.detail-rows {
+  margin: 0 0 16px;
+}
+
+.detail-row {
+  /* Label above the value: the panel is narrow, so long values get the full width. */
+  display: grid;
+  gap: 2px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--border, #e5e4e7);
+  font-size: var(--text-sm);
+}
+
+.detail-row dt {
+  color: var(--text-muted);
+}
+
+.detail-row dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+  /* Keeps line breaks typed in multiline fields such as access instructions. */
+  white-space: pre-line;
+}
+
+.detail-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.detail-empty {
+  padding: 32px 18px;
+  border: 1px dashed var(--border, #d4d4d8);
+  border-radius: 12px;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 12px;
+}
+
+.form-grid .span-2 {
+  grid-column: 1 / -1;
+}
+
+.schedule-fieldset {
+  margin: 16px 0 0;
+  padding: 12px 16px 4px;
+  border: 1px solid var(--border, #e5e4e7);
+  border-radius: 8px;
+}
+
+.schedule-fieldset legend {
+  font-family: var(--font-mono);
+  padding: 0 6px;
+  font-weight: var(--weight-semibold);
+  font-size: var(--text-xs);
+}
+
+.form-hint {
+  margin: 4px 0 12px;
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
