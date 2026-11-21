@@ -1,14 +1,17 @@
 import { useState } from 'react'
 import type { AppUser } from '../api'
 import { Navigation } from '../components/Navigation'
-import type { Page } from '../components/Navigation'
+import { pageTitles } from '../components/navigationConfig'
+import type { Page } from '../components/navigationConfig'
 import { ApiHealthStatus } from '../diagnostics/components/ApiHealthStatus'
-import { PropertiesPage } from '../pages/PropertiesPage'
-import { ServiceProvidersPage } from '../pages/ServiceProvidersPage'
+import { DashboardPage } from '../pages/DashboardPage'
 import { IcalImportPage } from '../pages/IcalImportPage'
 import { IcalSourcesPage } from '../pages/IcalSourcesPage'
+import { PropertiesPage } from '../pages/PropertiesPage'
+import { ServiceProvidersPage } from '../pages/ServiceProvidersPage'
 import { TasksPage } from '../pages/TasksPage'
 import { NoticesPage } from '../pages/NoticesPage'
+import { Button } from '../components/Button'
 
 type AuthenticatedAppProps = {
   user: AppUser
@@ -25,34 +28,87 @@ export function AuthenticatedApp({
   onLogout,
   onSessionExpired,
 }: AuthenticatedAppProps) {
-  const [page, setPage] = useState<Page>('properties')
+  const [page, setPage] = useState<Page>('dashboard')
+
+  const today = new Intl.DateTimeFormat('pt-PT', {
+    dateStyle: 'short',
+  }).format(new Date())
+
+  if (user.role === 'service_provider') {
+    return (
+      <main className="provider-access">
+        <h1>Olá, {user.name}</h1>
+        <p>Esta área é reservada a administradores e supervisores.</p>
+        <button disabled={busy} onClick={() => void onLogout()}>
+          {busy ? 'A terminar...' : 'Terminar sessão'}
+        </button>
+        {message && <p role="status">{message}</p>}
+      </main>
+    )
+  }
 
   return (
-    <main style={{ padding: 24 }}>
-      <h1>CleanCheck</h1>
+    <div className="admin-shell">
+      <aside className="admin-sidebar">
+        <div className="admin-brand">
+          <span className="admin-brand-mark" aria-hidden="true">
+            C&C
+          </span>
+          <div>
+            <strong>Clean &amp; Check</strong>
+            <small>Admin · Operações</small>
+          </div>
+        </div>
 
-      <ApiHealthStatus />
+        <Navigation current={page} onNavigate={setPage} />
 
-      <hr />
+        <div className="admin-user">
+          <span className="admin-user-avatar" aria-hidden="true">
+            {user.name.slice(0, 1).toUpperCase()}
+          </span>
+          <div>
+            <strong>{user.name}</strong>
+            <small>
+              {user.role === 'admin' ? 'Administrador' : 'Supervisor'}
+            </small>
+          </div>
+        </div>
+      </aside>
 
-      <section>
-        <h2>Olá, {user.name}</h2>
-        <p>{user.email}</p>
-        <p>Perfil: {user.role}</p>
+      <div className="admin-main">
+        <header className="admin-topbar">
+          <div className="admin-breadcrumb">
+            <span>Clean &amp; Check Admin</span>
+            <span aria-hidden="true">/</span>
+            <strong>{pageTitles[page]}</strong>
+          </div>
 
-        <button disabled={busy} onClick={() => void onLogout()}>
-          {busy ? 'A terminar...' : 'Sair'}
-        </button>
-      </section>
+          <div className="admin-topbar-actions">
+            <ApiHealthStatus />
 
-      <hr />
+            <time className="admin-date">{today}</time>
 
-      {user.role === 'service_provider' ? (
-        <p>Esta área é reservada a administradores e supervisores.</p>
-      ) : (
-        <>
-          <Navigation current={page} onNavigate={setPage} />
+            <Button
+              variant="secondary"
+              loading={busy}
+              loadingText="A terminar..."
+              onClick={() => void onLogout()}
+            >
+              Terminar sessão
+            </Button>
+          </div>
+        </header>
 
+        <main className="admin-workspace">
+          {message && (
+            <p className="admin-message" role="status">
+              {message}
+            </p>
+          )}
+
+          {page === 'dashboard' && (
+            <DashboardPage onNavigate={setPage} />
+          )}
           {page === 'properties' && <PropertiesPage />}
           {page === 'serviceProviders' && <ServiceProvidersPage />}
           {page === 'icalImport' && <IcalImportPage />}
@@ -61,10 +117,8 @@ export function AuthenticatedApp({
             <TasksPage onSessionExpired={onSessionExpired} />
           )}
           {page === 'notices' && <NoticesPage />}
-        </>
-      )}
-
-      {message && <p role="status">{message}</p>}
-    </main>
+        </main>
+      </div>
+    </div>
   )
 }
