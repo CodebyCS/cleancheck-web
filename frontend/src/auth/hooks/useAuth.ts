@@ -31,6 +31,18 @@ export function useAuth() {
 }, [])
 
   useEffect(() => {
+    if (message !== 'Login efetuado.') return
+
+    const timer = window.setTimeout(() => {
+      setMessage((currentMessage) =>
+        currentMessage === 'Login efetuado.' ? '' : currentMessage,
+      )
+    }, 3000)
+
+    return () => window.clearTimeout(timer)
+  }, [message])
+
+  useEffect(() => {
     let active = true
 
     api.get<AuthResponse>('/api/user')
