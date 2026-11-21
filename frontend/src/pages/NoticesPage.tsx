@@ -83,29 +83,61 @@ export function NoticesPage() {
   }
 
   return (
-    <section>
-      <h2>Avisos</h2>
-      <p>{unreadCount === 1 ? '1 aviso por ler' : `${unreadCount} avisos por ler`}</p>
+    <section className="notices-page" aria-labelledby="notices-title">
+      <header className="notices-heading">
+        <div>
+          <h1 id="notices-title">Avisos</h1>
+          <p>Acompanhe as alterações de reservas e os avisos da operação.</p>
+        </div>
 
-      <div className="notices-toolbar">
-        <label>
-          <input
-            type="checkbox"
-            checked={onlyUnread}
-            onChange={(event) => changeFilter(event.target.checked)}
-          />{' '}
-          Só não lidos
-        </label>
-        <Button variant="secondary" loading={loading} loadingText="A carregar..." onClick={refresh}>
+        <Button
+          variant="secondary"
+          loading={loading}
+          loadingText="A atualizar..."
+          onClick={refresh}
+        >
           Atualizar
         </Button>
-      </div>
+      </header>
+
+      {(notices.length > 0 || onlyUnread) && (
+        <div className="notices-toolbar">
+          {notices.length > 0 && (
+            <p className="notices-count" role="status">
+              {unreadCount > 0
+                ? `${unreadCount} ${
+                    unreadCount === 1 ? 'aviso por ler' : 'avisos por ler'
+                  }`
+                : 'Todos os avisos foram lidos'}
+            </p>
+          )}
+
+          <label className="notices-filter">
+            <input
+              type="checkbox"
+              checked={onlyUnread}
+              onChange={(event) => changeFilter(event.target.checked)}
+            />
+            <span>Mostrar apenas não lidos</span>
+          </label>
+        </div>
+      )}
 
       {error && <Message type="error">{error}</Message>}
       {actionError && <Message type="error">{actionError}</Message>}
 
       {!loading && !error && notices.length === 0 && (
-        <Message type="info">{onlyUnread ? 'Não há avisos por ler.' : 'Ainda não há avisos.'}</Message>
+        <div className="notices-empty" role="status">
+          <h2>
+            {onlyUnread ? 'Não há avisos por ler' : 'Ainda não há avisos'}
+          </h2>
+
+          <p>
+            {onlyUnread
+              ? 'Desative o filtro para consultar os avisos anteriores.'
+              : 'As alterações de reservas serão apresentadas aqui.'}
+          </p>
+        </div>
       )}
 
       <ul className="notice-list">

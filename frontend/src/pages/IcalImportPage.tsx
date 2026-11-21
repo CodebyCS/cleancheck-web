@@ -86,8 +86,11 @@ export function IcalImportPage() {
   const working = busy !== null
 
   return (
-    <section>
-      <h2>Importar reservas iCal</h2>
+    <section className="ical-import-page">
+      <header className="ical-import-heading">
+        <h1>Calendário e reservas</h1>
+        <p>Selecione um imóvel e um ficheiro iCal para consultar ou importar reservas.</p>
+      </header>
 
       {loading ? (
         <Message type="info">A carregar imóveis...</Message>
@@ -96,7 +99,11 @@ export function IcalImportPage() {
       ) : properties.length === 0 ? (
         <Message type="info">Registe um imóvel antes de importar reservas.</Message>
       ) : (
-        <form onSubmit={handleSubmit} noValidate>
+        <form
+          className="ical-import-form"
+          onSubmit={handleSubmit}
+          noValidate
+        >
           <div className="field">
             <label htmlFor="property_id">
               Imóvel<span aria-hidden="true"> *</span>

@@ -123,7 +123,7 @@ export function PropertiesPage() {
     <section>
       <div className="records-toolbar">
         <div>
-          <h2>Imóveis</h2>
+          <h2 className="page-title">Imóveis</h2>
           {!loading && !loadError && <p className="record-card-meta">{items.length} registos</p>}
         </div>
         <SelectField

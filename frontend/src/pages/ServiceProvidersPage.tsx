@@ -122,7 +122,7 @@ export function ServiceProvidersPage() {
     <section>
       <div className="records-toolbar">
         <div>
-          <h2>Prestadores</h2>
+          <h2 className="page-title">Prestadores</h2>
           {!loading && !loadError && <p className="record-card-meta">{items.length} registos</p>}
         </div>
         <SelectField
