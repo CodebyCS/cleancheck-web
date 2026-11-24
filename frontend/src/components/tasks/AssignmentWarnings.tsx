@@ -78,6 +78,11 @@ export function AssignmentWarnings({ refreshToken, onOpenTask, onSessionExpired 
         }
 
         // 404: the API does not have the endpoint yet; the page keeps working without warnings.
+        // Logged so a wrong route does not go unnoticed. Remove once the endpoint is in develop.
+        if (status === 404) {
+          console.warn('GET /api/tasks/assignment-warnings returned 404; assignment warnings are hidden.')
+        }
+
         setItems([])
         setError(status === 404 ? '' : 'Não foi possível carregar os avisos de atribuição.')
       })
