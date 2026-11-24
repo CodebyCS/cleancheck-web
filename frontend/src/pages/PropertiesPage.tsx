@@ -76,14 +76,19 @@ export function PropertiesPage() {
     setFilter(value as ActiveFilter)
   }
 
-  // Only active providers can be chosen as responsible.
+  // Only active providers can be chosen as the default provider.
   const providerOptions = useMemo(
     () => providers.filter((p) => p.is_active).map((p) => ({ value: String(p.id), label: p.name })),
     [providers],
   )
 
   const providerName = useCallback(
-    (id: number | null) => (id === null ? 'Sem responsável' : providers.find((p) => p.id === id)?.name ?? `#${id}`),
+    (id: number | null) => {
+      if (id === null) return 'Sem prestador padrão'
+      const provider = providers.find((p) => p.id === id)
+      if (!provider) return `#${id}`
+      return provider.is_active ? provider.name : `${provider.name} (inativo)`
+    },
     [providers],
   )
 
@@ -168,7 +173,7 @@ export function PropertiesPage() {
                       {property.address}, {property.postal_code} {property.city}
                     </span>
                     <span className="record-card-meta">
-                      Responsável: {providerName(property.responsible_service_provider_id)}
+                      Prestador padrão: {providerName(property.responsible_service_provider_id)}
                       {' · '}
                       Limpeza {cleaningWindowText(property)}
                     </span>
@@ -187,7 +192,7 @@ export function PropertiesPage() {
             </h3>
             <dl className="detail-rows">
               <div className="detail-row"><dt>Morada</dt><dd>{selected.address}, {selected.postal_code} {selected.city}</dd></div>
-              <div className="detail-row"><dt>Responsável</dt><dd>{providerName(selected.responsible_service_provider_id)}</dd></div>
+              <div className="detail-row"><dt>Prestador padrão</dt><dd>{providerName(selected.responsible_service_provider_id)}</dd></div>
               <div className="detail-row"><dt>Valor base</dt><dd>{formatAmount(selected.base_cleaning_amount)}</dd></div>
               <div className="detail-row"><dt>Hora de saída</dt><dd>{selected.default_check_out_time ?? '—'}</dd></div>
               <div className="detail-row"><dt>Hora de entrada</dt><dd>{selected.default_check_in_time ?? '—'}</dd></div>
@@ -217,6 +222,7 @@ export function PropertiesPage() {
         <PropertyForm
           property={formTarget.property}
           providerOptions={providerOptions}
+          providerName={(id) => providerName(id)}
           onClose={() => setFormTarget(null)}
           onSaved={handleSaved}
         />
