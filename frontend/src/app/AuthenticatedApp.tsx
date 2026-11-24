@@ -11,6 +11,7 @@ import { PropertiesPage } from '../pages/PropertiesPage'
 import { ServiceProvidersPage } from '../pages/ServiceProvidersPage'
 import { TasksPage } from '../pages/TasksPage'
 import { NoticesPage } from '../pages/NoticesPage'
+import { RatesPage } from '../pages/RatesPage'
 import { Button } from '../components/Button'
 
 type AuthenticatedAppProps = {
@@ -178,6 +179,7 @@ export function AuthenticatedApp({
             <TasksPage onSessionExpired={onSessionExpired} />
           )}
           {page === 'notices' && <NoticesPage />}
+          {page === 'rates' && <RatesPage />}
         </main>
       </div>
     </div>
