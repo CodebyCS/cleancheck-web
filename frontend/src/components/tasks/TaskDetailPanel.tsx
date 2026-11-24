@@ -1,8 +1,13 @@
+import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
 import { Button } from '../Button'
 import { Message } from '../Message'
 import type { ServiceProvider } from '../../services/serviceProviders'
-import type { TaskDetail } from '../../services/tasks'
+import {
+  getTaskEvidenceFile,
+  listTaskEvidence,
+} from '../../services/tasks'
+import type { TaskDetail, TaskEvidence } from '../../services/tasks'
 
 type TaskAction = 'complete' | 'cancel' | 'restore'
 
@@ -25,6 +30,10 @@ type Props = {
   onAssign: (event: FormEvent<HTMLFormElement>) => void
 }
 
+type EvidencePreview = TaskEvidence & {
+  previewUrl: string
+}
+
 export function TaskDetailPanel({
   selectedId,
   detail,
@@ -43,6 +52,58 @@ export function TaskDetailPanel({
   saveError,
   onAssign,
 }: Props) {
+
+  const [evidence, setEvidence] = useState<EvidencePreview[]>([])
+  const [evidenceLoading, setEvidenceLoading] = useState(false)
+  const [evidenceError, setEvidenceError] = useState('')
+
+  useEffect(() => {
+    let cancelled = false
+    const previewUrls: string[] = []
+
+    setEvidence([])
+    setEvidenceError('')
+
+    if (detail === null) {
+      setEvidenceLoading(false)
+      return
+    }
+
+    setEvidenceLoading(true)
+
+    void listTaskEvidence(detail.id)
+      .then(async (items) => {
+        const previews = await Promise.all(
+          items.map(async (item) => {
+            const blob = await getTaskEvidenceFile(item.file_url)
+            const previewUrl = URL.createObjectURL(blob)
+            previewUrls.push(previewUrl)
+
+            return { ...item, previewUrl }
+          }),
+        )
+
+        if (!cancelled) {
+          setEvidence(previews)
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setEvidenceError('Não foi possível carregar as mídias desta tarefa.')
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setEvidenceLoading(false)
+        }
+      })
+
+    return () => {
+      cancelled = true
+      previewUrls.forEach((url) => URL.revokeObjectURL(url))
+    }
+  }, [detail?.id])
+
   return (
     <div className="task-detail">
       <h3>Detalhe</h3>
@@ -92,6 +153,42 @@ export function TaskDetailPanel({
             <dt>Registo atualizado em</dt>
             <dd>{dateLabel(detail.updated_at)}</dd>
           </dl>
+
+          <section className="task-evidence">
+            <h4>Fotos e vídeos enviados</h4>
+
+            {evidenceLoading && (
+              <Message type="info">A carregar mídias...</Message>
+            )}
+
+            {evidenceError && (
+              <Message type="error">{evidenceError}</Message>
+            )}
+
+            {!evidenceLoading && !evidenceError && evidence.length === 0 && (
+              <p>Nenhuma mídia enviada para esta tarefa.</p>
+            )}
+
+            {evidence.map((item) => (
+              <figure key={item.id} className="task-evidence-item">
+                {item.kind === 'photo' ? (
+                  <img
+                    src={item.previewUrl}
+                    alt={item.original_name}
+                    loading="lazy"
+                  />
+                ) : (
+                  <video
+                    src={item.previewUrl}
+                    controls
+                    preload="metadata"
+                    aria-label={item.original_name}
+                  />
+                )}
+                <figcaption>{item.original_name}</figcaption>
+              </figure>
+            ))}
+          </section>
 
           {taskActionError && <Message type="error">{taskActionError}</Message>}
 

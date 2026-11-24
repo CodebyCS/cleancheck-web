@@ -445,3 +445,19 @@
 .task-week-item.task-overdue {
   border-left-color: #dc2626;
 }
+
+.task-item.task-missing-video {
+  border-color: #dc2626;
+  background: #fef2f2;
+  color: #7f1d1d;
+}
+
+.task-missing-video-label {
+  width: fit-content;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #dc2626;
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 700;
+}

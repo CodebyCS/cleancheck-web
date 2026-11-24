@@ -26,7 +26,13 @@ export function TaskListView({
           <li key={task.id}>
             <button
               type="button"
-              className={task.is_overdue ? 'task-item task-overdue' : 'task-item'}
+              className={[
+                'task-item',
+                task.is_overdue ? 'task-overdue' : '',
+                task.missing_video ? 'task-missing-video' : '',
+              ]
+                .filter(Boolean)
+                .join(' ')}
               aria-current={selectedId === task.id ? 'true' : undefined}
               onClick={() => onOpenTask(task.id)}
             >
@@ -35,6 +41,7 @@ export function TaskListView({
                 {typeLabel(task.type)} · {dateLabel(task.scheduled_start_at)}
               </span>
               <span>Estado: {statusLabel(task.status)}</span>
+              {task.missing_video && (<span className='task-missing-video-label'>Falta vídeo</span>)}
               <span>Reserva #{task.booking_id}</span>
               <span>Prestador: {task.service_provider ?? 'Não atribuído'}</span>
               {task.is_overdue && <span className="task-overdue">Em atraso</span>}
