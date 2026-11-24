@@ -17,7 +17,8 @@ export type Rate = {
 export type RateInput = {
   property_id: number | null
   task_type: RateTaskType
-  amount: number
+  // null when the field is empty, so the API answers "Indique o valor."
+  amount: number | null
   currency: string
   valid_from: string
 }

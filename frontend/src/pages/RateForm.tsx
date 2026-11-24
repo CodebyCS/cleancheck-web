@@ -59,7 +59,7 @@ export function RateForm({ propertyOptions, today, onClose, onSaved }: RateFormP
       const saved = await createRate({
         property_id: form.property_id ? Number(form.property_id) : null,
         task_type: form.task_type,
-        amount: Number(form.amount.replace(',', '.')),
+        amount: form.amount.trim() === '' ? null : Number(form.amount.replace(',', '.')),
         currency: form.currency.trim(),
         valid_from: form.valid_from,
       })
