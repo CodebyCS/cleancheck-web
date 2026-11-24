@@ -14,6 +14,7 @@ import { ManualInspectionForm } from '../components/tasks/ManualInspectionForm'
 import { TaskWeekAgenda } from '../components/tasks/TaskWeekAgenda'
 import { TaskListView } from '../components/tasks/TaskListView'
 import { TaskDetailPanel } from '../components/tasks/TaskDetailPanel'
+import { AssignmentWarnings } from '../components/tasks/AssignmentWarnings'
 import './TasksPage.css'
 
 type Props = { onSessionExpired: () => void }
@@ -359,6 +360,8 @@ export function TasksPage({ onSessionExpired }: Props) {
         </div>
       )}
 
+      <AssignmentWarnings refreshToken={tasks} onOpenTask={(id) => void openTask(id)} onSessionExpired={onSessionExpired} />
+
       {confirmation && <Message type="success">A API confirmou a atribuição da tarefa #{confirmation.taskId} a {confirmation.providerName} (prestador #{confirmation.providerId}).</Message>}
       {loading && <Message type="info">A carregar tarefas e prestadores...</Message>}
       {listError && <Message type="error">{listError} <button type="button" onClick={() => void refresh()}>Tentar novamente</button></Message>}
@@ -416,4 +419,4 @@ export function TasksPage({ onSessionExpired }: Props) {
       )}
     </section>
   )
-}
+}
