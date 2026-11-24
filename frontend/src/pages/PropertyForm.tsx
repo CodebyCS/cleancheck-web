@@ -18,6 +18,7 @@ import { DEFAULT_TIMEZONE, timezoneOptionsWith } from '../utils/timezones'
 type PropertyFormProps = {
   property: Property | null
   providerOptions: SelectOption[]
+  providerName: (id: number) => string
   onClose: () => void
   onSaved: (property: Property) => void
 }
@@ -68,8 +69,17 @@ function toInput(form: FormState): PropertyInput {
   }
 }
 
-export function PropertyForm({ property, providerOptions, onClose, onSaved }: PropertyFormProps) {
-  const [form, setForm] = useState<FormState>(() => toFormState(property))
+export function PropertyForm({ property, providerOptions, providerName, onClose, onSaved }: PropertyFormProps) {
+  // Only active providers are listed. A default provider deactivated in the meantime starts empty,
+  // otherwise saving would send it and the API would reject the form.
+  const savedProviderId = property?.responsible_service_provider_id ?? null
+  const savedProviderInactive =
+    savedProviderId !== null && !providerOptions.some((option) => option.value === String(savedProviderId))
+
+  const [form, setForm] = useState<FormState>(() => {
+    const state = toFormState(property)
+    return savedProviderInactive ? { ...state, responsible_service_provider_id: '' } : state
+  })
   const [errors, setErrors] = useState<FieldErrors>({})
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
@@ -137,15 +147,25 @@ export function PropertyForm({ property, providerOptions, onClose, onSaved }: Pr
           </div>
           <div className="span-2">
             <SelectField
-              label="Prestador responsável"
+              label="Prestador padrão"
               name="responsible_service_provider_id"
               value={form.responsible_service_provider_id}
               options={providerOptions}
-              placeholder="Sem responsável"
+              placeholder="Sem prestador padrão"
               onChange={handleChange}
               error={errors.responsible_service_provider_id}
               disabled={saving}
             />
+            <p className="form-hint">
+              As tarefas novas deste imóvel ficam atribuídas a este prestador. Mudar aqui não altera as tarefas já
+              criadas; essas trocam-se na página Tarefas. Só aparecem prestadores ativos.
+            </p>
+            {savedProviderInactive && savedProviderId !== null && form.responsible_service_provider_id === '' && (
+              <Message type="info">
+                O prestador padrão atual, {providerName(savedProviderId)}, está inativo e as tarefas novas ficam sem
+                prestador. Escolha outro prestador ou guarde sem prestador padrão.
+              </Message>
+            )}
           </div>
           <Field label="Valor base (€)" name="base_cleaning_amount" type="number" value={form.base_cleaning_amount} onChange={handleChange} error={errors.base_cleaning_amount} disabled={saving} />
           <div />
