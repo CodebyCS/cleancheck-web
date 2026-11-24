@@ -17,4 +17,4 @@ export const pageTitles: Record<Page, string> = {
   icalSources: 'Fontes iCal',
   notices: 'Avisos',
   rates: 'Tarifas',
-}
+}
