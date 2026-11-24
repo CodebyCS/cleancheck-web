@@ -10,7 +10,7 @@ export type TaskSummary = {
   service_provider_id: number | null
   service_provider: string | null
   is_overdue: boolean
-  missing_video: boolean
+  missing_evidence: boolean
   completed_at: string | null
   completed_by: string | null
   updated_at: string

@@ -29,7 +29,7 @@ export function TaskListView({
               className={[
                 'task-item',
                 task.is_overdue ? 'task-overdue' : '',
-                task.missing_video ? 'task-missing-video' : '',
+                task.missing_evidence ? 'task-missing-video' : '',
               ]
                 .filter(Boolean)
                 .join(' ')}
@@ -41,7 +41,7 @@ export function TaskListView({
                 {typeLabel(task.type)} · {dateLabel(task.scheduled_start_at)}
               </span>
               <span>Estado: {statusLabel(task.status)}</span>
-              {task.missing_video && (<span className='task-missing-video-label'>Falta vídeo</span>)}
+              {task.missing_evidence && (<span className='task-missing-video-label'>Falta vídeo</span>)}
               <span>Reserva #{task.booking_id}</span>
               <span>Prestador: {task.service_provider ?? 'Não atribuído'}</span>
               {task.is_overdue && <span className="task-overdue">Em atraso</span>}

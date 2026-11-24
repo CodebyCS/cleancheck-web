@@ -94,7 +94,7 @@ export function TaskWeekAgenda({
                             'task-item',
                             'task-week-item',
                             task.is_overdue ? 'task-overdue' : '',
-                            task.missing_video ? 'task-missing-video' : '',
+                            task.missing_evidence ? 'task-missing-video' : '',
                           ]
                             .filter(Boolean)
                             .join(' ')}
@@ -109,7 +109,7 @@ export function TaskWeekAgenda({
                           <span>{typeLabel(task.type)}</span>
                           <span>Estado: {statusLabel(task.status)}</span>
 
-                          {task.missing_video && (
+                          {task.missing_evidence && (
                             <span className="task-missing-video-label">Falta vídeo</span>
                           )}
 
