@@ -110,7 +110,7 @@ export function TaskWeekAgenda({
                           <span>Estado: {statusLabel(task.status)}</span>
 
                           {task.missing_evidence && (
-                            <span className="task-missing-video-label">Falta vídeo</span>
+                            <span className="task-missing-video-label">Falta evidência</span>
                           )}
 
                           {task.is_overdue && (

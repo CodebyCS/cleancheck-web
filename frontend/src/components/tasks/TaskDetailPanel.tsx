@@ -53,56 +53,59 @@ export function TaskDetailPanel({
   onAssign,
 }: Props) {
 
-  const [evidence, setEvidence] = useState<EvidencePreview[]>([])
-  const [evidenceLoading, setEvidenceLoading] = useState(false)
-  const [evidenceError, setEvidenceError] = useState('')
+    const [evidenceState, setEvidenceState] = useState<{
+      taskId: number
+      items: EvidencePreview[]
+      error: string
+    } | null>(null)
 
-  useEffect(() => {
-    let cancelled = false
-    const previewUrls: string[] = []
+    const taskId = detail?.id ?? null
+    const evidence = evidenceState?.taskId === taskId ? evidenceState.items : []
+    const evidenceError = evidenceState?.taskId === taskId ? evidenceState.error : ''
+    const evidenceLoading =
+      taskId !== null && evidenceState?.taskId !== taskId
 
-    setEvidence([])
-    setEvidenceError('')
+    useEffect(() => {
+      let cancelled = false
+      const previewUrls: string[] = []
 
-    if (detail === null) {
-      setEvidenceLoading(false)
-      return
-    }
-
-    setEvidenceLoading(true)
-
-    void listTaskEvidence(detail.id)
-      .then(async (items) => {
-        const previews = await Promise.all(
-          items.map(async (item) => {
-            const blob = await getTaskEvidenceFile(item.file_url)
-            const previewUrl = URL.createObjectURL(blob)
-            previewUrls.push(previewUrl)
-
-            return { ...item, previewUrl }
-          }),
-        )
-
-        if (!cancelled) {
-          setEvidence(previews)
+      if (taskId === null) {
+        return () => {
+          cancelled = true
         }
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setEvidenceError('Não foi possível carregar as mídias desta tarefa.')
-        }
-      })
-      .finally(() => {
-        if (!cancelled) {
-          setEvidenceLoading(false)
-        }
-      })
+      }
 
-    return () => {
-      cancelled = true
-      previewUrls.forEach((url) => URL.revokeObjectURL(url))
-    }
-  }, [detail?.id])
+      void listTaskEvidence(taskId)
+        .then(async (items) => {
+          const previews = await Promise.all(
+            items.map(async (item) => {
+              const blob = await getTaskEvidenceFile(item.file_url)
+              const previewUrl = URL.createObjectURL(blob)
+              previewUrls.push(previewUrl)
+
+              return { ...item, previewUrl }
+            }),
+          )
+
+          if (!cancelled) {
+            setEvidenceState({ taskId, items: previews, error: '' })
+          }
+        })
+        .catch(() => {
+          if (!cancelled) {
+            setEvidenceState({
+              taskId,
+              items: [],
+              error: 'Não foi possível carregar os ficheiros desta tarefa.',
+            })
+          }
+        })
+
+      return () => {
+        cancelled = true
+        previewUrls.forEach((url) => URL.revokeObjectURL(url))
+      }
+    }, [taskId])
 
   return (
     <div className="task-detail">
@@ -158,7 +161,7 @@ export function TaskDetailPanel({
             <h4>Fotos e vídeos enviados</h4>
 
             {evidenceLoading && (
-              <Message type="info">A carregar mídias...</Message>
+              <Message type="info">A carregar ficheiros...</Message>
             )}
 
             {evidenceError && (
@@ -166,7 +169,7 @@ export function TaskDetailPanel({
             )}
 
             {!evidenceLoading && !evidenceError && evidence.length === 0 && (
-              <p>Nenhuma mídia enviada para esta tarefa.</p>
+              <p>Nenhum ficheiro enviado para esta tarefa.</p>
             )}
 
             {evidence.map((item) => (
