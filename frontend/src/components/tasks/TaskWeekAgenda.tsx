@@ -90,11 +90,14 @@ export function TaskWeekAgenda({
                       <li key={task.id}>
                         <button
                           type="button"
-                          className={
-                            task.is_overdue
-                              ? 'task-item task-week-item task-overdue'
-                              : 'task-item task-week-item'
-                          }
+                          className={[
+                            'task-item',
+                            'task-week-item',
+                            task.is_overdue ? 'task-overdue' : '',
+                            task.missing_evidence ? 'task-missing-video' : '',
+                          ]
+                            .filter(Boolean)
+                            .join(' ')}
                           aria-current={selectedId === task.id ? 'true' : undefined}
                           onClick={() => onOpenTask(task.id)}
                         >
@@ -105,6 +108,10 @@ export function TaskWeekAgenda({
 
                           <span>{typeLabel(task.type)}</span>
                           <span>Estado: {statusLabel(task.status)}</span>
+
+                          {task.missing_evidence && (
+                            <span className="task-missing-video-label">Falta evidência</span>
+                          )}
 
                           {task.is_overdue && (
                             <span className="task-overdue-label">Em atraso</span>

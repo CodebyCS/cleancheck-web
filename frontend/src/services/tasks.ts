@@ -10,6 +10,7 @@ export type TaskSummary = {
   service_provider_id: number | null
   service_provider: string | null
   is_overdue: boolean
+  missing_evidence: boolean
   completed_at: string | null
   completed_by: string | null
   updated_at: string
@@ -20,6 +21,16 @@ export type TaskDetail = TaskSummary & {
   property_address: string | null
   scheduled_end_at: string | null
   started_at: string | null
+}
+
+export type TaskEvidence = {
+  id: number
+  kind: 'photo' | 'video'
+  mime_type: string
+  size_bytes: number
+  original_name: string
+  created_at: string
+  file_url: string
 }
 
 export type AssignmentResult = {
@@ -35,7 +46,6 @@ export type TaskListOptions = {
   propertyId?: number
   unassigned?: boolean
   overdue?: boolean
-  inConflict?: boolean
 }
 
 type TaskListResponse = {
@@ -54,7 +64,6 @@ export async function listTasks(options: TaskListOptions = {}): Promise<TaskSumm
     ...(options.propertyId ? { property_id: options.propertyId } : {}),
     ...(options.unassigned ? { unassigned: 1} : {}),
     ...(options.overdue ? { overdue: 1} : {}),
-    ...(options.inConflict ? { inConflict: 1} : {}),
   }
 
   const firstResponse = await api.get<TaskListResponse>('/api/tasks', {
@@ -88,6 +97,22 @@ export async function createManualInspection(bookingId: number): Promise<TaskDet
 export async function getTask(id: number): Promise<TaskDetail> {
   const response = await api.get<{ data: TaskDetail }>(`/api/tasks/${id}`)
   return response.data.data
+}
+
+export async function listTaskEvidence(taskId: number): Promise<TaskEvidence[]> {
+  const response = await api.get<{ data: TaskEvidence[] }>(
+    `/api/tasks/${taskId}/evidence`,
+  )
+
+  return response.data.data
+}
+
+export async function getTaskEvidenceFile(fileUrl: string): Promise<Blob> {
+  const response = await api.get<Blob>(fileUrl, {
+    responseType: 'blob',
+  })
+
+  return response.data
 }
 
 export async function assignTask(id: number, providerId: number): Promise<AssignmentResult> {
