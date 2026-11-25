@@ -15,6 +15,7 @@ const items: { page: Page; icon: string }[] = [
   { page: 'icalImport', icon: '▤' },
   { page: 'icalSources', icon: '↻' },
   { page: 'notices', icon: '♧' },
+  { page: 'rates', icon: '€' },
 ]
 
 export function Navigation({
