@@ -11,6 +11,8 @@ import { PropertiesPage } from '../pages/PropertiesPage'
 import { ServiceProvidersPage } from '../pages/ServiceProvidersPage'
 import { TasksPage } from '../pages/TasksPage'
 import { NoticesPage } from '../pages/NoticesPage'
+import { AlertsPage } from '../pages/AlertsPage'
+import { useTaskAlertCounts } from '../hooks/useTaskAlertCounts'
 import { RatesPage } from '../pages/RatesPage'
 import { Button } from '../components/Button'
 
@@ -32,6 +34,12 @@ export function AuthenticatedApp({
   const [page, setPage] = useState<Page>('dashboard')
   const [menuOpen, setMenuOpen] = useState(false)
   const menuButtonRef = useRef<HTMLButtonElement>(null)
+
+  // Providers cannot read alerts (403), so they never poll.
+  const alertCounts = useTaskAlertCounts(user.role !== 'service_provider')
+  const navigationBadges = alertCounts.counts
+    ? { alerts: { count: alertCounts.counts.active, urgent: alertCounts.counts.high > 0 } }
+    : undefined
 
   const today = new Intl.DateTimeFormat('pt-PT', {
     dateStyle: 'short',
@@ -88,7 +96,7 @@ export function AuthenticatedApp({
           </div>
         </div>
 
-        <Navigation current={page} onNavigate={setPage} />
+        <Navigation current={page} onNavigate={setPage} badges={navigationBadges} />
 
         <div className="admin-user">
           <span className="admin-user-avatar" aria-hidden="true">
@@ -136,6 +144,7 @@ export function AuthenticatedApp({
               <Navigation
                 current={page}
                 onNavigate={navigateFromMobile}
+                badges={navigationBadges}
               />
             </div>
           </div>
@@ -170,6 +179,9 @@ export function AuthenticatedApp({
 
           {page === 'dashboard' && (
             <DashboardPage onNavigate={setPage} />
+          )}
+          {page === 'alerts' && (
+            <AlertsPage onSessionExpired={onSessionExpired} onAlertsChanged={alertCounts.refresh} />
           )}
           {page === 'properties' && <PropertiesPage />}
           {page === 'serviceProviders' && <ServiceProvidersPage />}

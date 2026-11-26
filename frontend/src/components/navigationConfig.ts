@@ -1,5 +1,6 @@
 export type Page =
   | 'dashboard'
+  | 'alerts'
   | 'properties'
   | 'serviceProviders'
   | 'icalImport'
@@ -10,6 +11,7 @@ export type Page =
 
 export const pageTitles: Record<Page, string> = {
   dashboard: 'Visão geral',
+  alerts: 'Alertas',
   tasks: 'Tarefas',
   serviceProviders: 'Funcionários',
   properties: 'Apartamentos',
