@@ -9,6 +9,7 @@ export type TaskSummary = {
   booking_id: number
   service_provider_id: number | null
   service_provider: string | null
+  provider_notes: string | null
   is_overdue: boolean
   missing_evidence: boolean
   completed_at: string | null
@@ -139,5 +140,22 @@ export async function cancelTask(id: number): Promise<void> {
 export async function restoreTask(id: number): Promise<TaskDetail> {
   await api.get('/sanctum/csrf-cookie')
   const response = await api.post<{ data: TaskDetail }>(`/api/tasks/${id}/restore`)
+  return response.data.data
+}
+
+export async function completeTasks(
+  taskIds: number[],
+  acceptMissingEvidence = false,
+): Promise<TaskDetail[]> {
+  await api.get('/sanctum/csrf-cookie')
+
+  const response = await api.post<{ data: TaskDetail[] }>(
+    '/api/tasks/complete-many',
+    {
+      task_ids: taskIds,
+      ...(acceptMissingEvidence ? { accept_missing_evidence: true } : {}),
+    },
+  )
+
   return response.data.data
 }

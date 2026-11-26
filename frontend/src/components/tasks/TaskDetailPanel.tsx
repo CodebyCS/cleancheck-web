@@ -129,11 +129,20 @@ export function TaskDetailPanel({
       {detail && !detailLoading && (
         <>
           <dl className="task-fields">
+            <dt>ID da tarefa</dt>
+            <dd>#{detail.id}</dd>
+            
             <dt>Imóvel</dt>
             <dd>{detail.property ?? 'Imóvel sem nome'}</dd>
 
             <dt>Morada</dt>
             <dd>{detail.property_address ?? 'Não disponível'}</dd>
+
+            <dt>Prestador responsável</dt>
+            <dd>{detail.service_provider ?? 'Não atribuído'}</dd>
+
+            <dt>Notas do prestador</dt>
+            <dd>{detail.provider_notes?.trim() || 'Sem notas registadas'}</dd>
 
             <dt>Tipo</dt>
             <dd>{typeLabel(detail.type)}</dd>
@@ -233,7 +242,7 @@ export function TaskDetailPanel({
           </div>
 
           <p className="task-limitation">
-            O responsável atual e o histórico ainda não estão disponíveis nas consultas da API.
+            O histórico de atribuições ainda não é fornecido pela API.
           </p>
 
           <form onSubmit={onAssign}>

@@ -6,7 +6,7 @@ import { Button } from '../components/Button'
 import { Message } from '../components/Message'
 import { listActiveServiceProviders } from '../services/serviceProviders'
 import type { ServiceProvider } from '../services/serviceProviders'
-import { assignTask, getTask, listTasks, cancelTask, completeTask, restoreTask } from '../services/tasks'
+import { assignTask, getTask, listTasks, cancelTask, completeTask, restoreTask, completeTasks } from '../services/tasks'
 import type { TaskDetail, TaskSummary } from '../services/tasks'
 import { fieldErrors } from '../services/validation'
 import { getTaskWeekRange, shiftTaskWeek } from '../utils/taskWeek'
@@ -81,6 +81,7 @@ function typeLabel(value: string): string {
 
 export function TasksPage({ onSessionExpired }: Props) {
   const [tasks, setTasks] = useState<TaskSummary[]>([])
+  const [assignmentWarningTaskIds, setAssignmentWarningTaskIds] = useState<number[]>([])
   const [providers, setProviders] = useState<ServiceProvider[]>([])
   const [loading, setLoading] = useState(true)
   const [listError, setListError] = useState('')
@@ -95,11 +96,14 @@ export function TasksPage({ onSessionExpired }: Props) {
   const [saveError, setSaveError] = useState('')
   const [confirmation, setConfirmation] = useState<Confirmation | null>(null)
   const [showDeleted, setShowDeleted] = useState(false)
-  const [unassignedOnly, setUnassignedOnly] = useState(false)
   const [overdueOnly, setOverdueOnly] = useState(false)
-
+  const [showCompletedOnly, setShowCompletedOnly] = useState(false)
+  const [currentTime, setCurrentTime] = useState(() => Date.now())
+  const [selectedTaskIds, setSelectedTaskIds] = useState<Set<number>>(() => new Set())
+  const [completingSelected, setCompletingSelected] = useState(false)
   const [taskAction, setTaskAction] = useState<'complete' | 'cancel' | 'restore' | null>(null)
   const [taskActionError, setTaskActionError] = useState('')
+  const [bulkActionError, setBulkActionError] = useState('')
   const [weekAnchor, setWeekAnchor] = useState(() => new Date())
   const [viewMode, setViewMode] = useState<'list' | 'week'>('list')
   const weekRange = getTaskWeekRange(weekAnchor)
@@ -113,7 +117,6 @@ export function TasksPage({ onSessionExpired }: Props) {
       const [nextTasks, nextProviders] = await Promise.all([
         listTasks({
           showDeleted,
-          unassigned: unassignedOnly,
           overdue: overdueOnly,
           ...(viewMode === 'week' ? { from: weekRange.from, to: weekRange.to } : {}),
         }),
@@ -126,12 +129,21 @@ export function TasksPage({ onSessionExpired }: Props) {
     } finally {
       setLoading(false)
     }
-  }, [onSessionExpired, showDeleted, unassignedOnly, overdueOnly, viewMode, weekRange.from, weekRange.to])
+  }, [onSessionExpired, showDeleted, overdueOnly, viewMode, weekRange.from, weekRange.to])
 
   useEffect(() => {
     const timer = window.setTimeout(() => { void refresh() }, 0)
     return () => window.clearTimeout(timer)
   }, [refresh])
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setCurrentTime(Date.now()), 30_000)
+    return () => window.clearInterval(timer)
+  }, [])
+
+  useEffect(() => {
+    setSelectedTaskIds(new Set())
+  }, [showCompletedOnly, overdueOnly, showDeleted, viewMode, weekRange.from, weekRange.to])
 
   async function openTask(id: number) {
     selectedIdRef.current = id
@@ -250,6 +262,116 @@ export function TasksPage({ onSessionExpired }: Props) {
     }
   }
 
+  const taskIdsInAssignmentReview = new Set(assignmentWarningTaskIds)
+
+  const completedTasks = tasks.filter((task) => task.status === 'completed')
+
+  const tasksWithinDashboardWindow = tasks.filter((task) => {
+    if (task.status !== 'completed') return true
+
+    if (task.missing_evidence) return true
+    if (!task.completed_at) return true
+
+    const completedAt = Date.parse(task.completed_at)
+    if (!Number.isFinite(completedAt)) return true
+
+    return currentTime - completedAt <= 30 * 60 * 1000
+  })
+
+  const tasksForCurrentView = showCompletedOnly
+    ? completedTasks
+    : tasksWithinDashboardWindow
+
+  const tasksInCurrentList = tasksForCurrentView.filter(
+    (task) => !taskIdsInAssignmentReview.has(task.id),
+  )
+
+  function isTaskSelectable(task: TaskSummary): boolean {
+    return task.status === 'pending'
+      || task.status === 'in_progress'
+      || (task.status === 'completed' && task.missing_evidence)
+  }
+
+  function toggleTaskSelection(id: number) {
+    const task = tasksInCurrentList.find((item) => item.id === id)
+    if (!task || !isTaskSelectable(task)) return
+
+    setSelectedTaskIds((current) => {
+      const next = new Set(current)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  function toggleSelectAllVisibleTasks() {
+    const selectableIds = tasksInCurrentList
+      .filter(isTaskSelectable)
+      .map((task) => task.id)
+
+    if (selectableIds.length === 0) return
+
+    const allSelected = selectableIds.every((id) => selectedTaskIds.has(id))
+
+    setSelectedTaskIds((current) => {
+      const next = new Set(current)
+
+      if (allSelected) {
+        selectableIds.forEach((id) => next.delete(id))
+      } else {
+        selectableIds.forEach((id) => next.add(id))
+      }
+
+      return next
+    })
+  }
+
+  async function handleCompleteSelected(acceptMissingEvidence = false) {
+    const selectedTasks = tasksInCurrentList.filter((task) =>
+      selectedTaskIds.has(task.id)
+      && (
+        task.status === 'pending'
+        || task.status === 'in_progress'
+        || (task.status === 'completed' && task.missing_evidence)
+      ),
+    )
+
+    if (selectedTasks.length === 0) return
+
+    const missingEvidenceTasks = selectedTasks.filter(
+      (task) => task.status === 'completed' && task.missing_evidence,
+    )
+
+    if (missingEvidenceTasks.length > 0 && !acceptMissingEvidence) {
+      const taskNames = missingEvidenceTasks
+        .map((task) => `Tarefa #${task.id} — ${task.property ?? 'Imóvel sem nome'}`)
+        .join('\n')
+
+      const confirmed = window.confirm(
+        `Estas tarefas foram concluídas sem evidência:\n\n${taskNames}\n\nAceitar a conclusão sem evidência?`,
+      )
+
+      if (!confirmed) return
+
+      return handleCompleteSelected(true)
+    }
+
+    setCompletingSelected(true)
+    setBulkActionError('')
+
+    try {
+      await completeTasks(
+        selectedTasks.map((task) => task.id),
+        missingEvidenceTasks.length > 0 && acceptMissingEvidence,
+      )
+      setSelectedTaskIds(new Set())
+      await Promise.allSettled([refresh(), refreshDetail()])
+    } catch (error) {
+      setBulkActionError(requestError(error, onSessionExpired))
+    } finally {
+      setCompletingSelected(false)
+    }
+  }
 
   return (
     <section className="tasks-page" aria-labelledby="tasks-title">
@@ -279,10 +401,10 @@ export function TasksPage({ onSessionExpired }: Props) {
           <label className="task-filter-option">
             <input
               type="checkbox"
-              checked={unassignedOnly}
-              onChange={(event) => setUnassignedOnly(event.target.checked)}
+              checked={showCompletedOnly}
+              onChange={(event) => setShowCompletedOnly(event.target.checked)}
             />
-            <span>Não atribuídas</span>
+            <span>Concluídas</span>
           </label>
 
           <label className="task-filter-option">
@@ -360,9 +482,45 @@ export function TasksPage({ onSessionExpired }: Props) {
         </div>
       )}
 
-      <AssignmentWarnings refreshToken={tasks} onOpenTask={(id) => void openTask(id)} onSessionExpired={onSessionExpired} />
+      <AssignmentWarnings refreshToken={tasks} onOpenTask={(id) => void openTask(id)} onSessionExpired={onSessionExpired} onTaskIdsChange={setAssignmentWarningTaskIds}/>
 
       {confirmation && <Message type="success">A API confirmou a atribuição da tarefa #{confirmation.taskId} a {confirmation.providerName} (prestador #{confirmation.providerId}).</Message>}
+
+      {bulkActionError && <Message type="error">{bulkActionError}</Message>}
+
+      <div className="tasks-actions mb-1">
+        <Button
+          variant="secondary"
+          onClick={toggleSelectAllVisibleTasks}
+          disabled={completingSelected || !tasksInCurrentList.some(isTaskSelectable)}
+        >
+          {tasksInCurrentList
+            .filter(isTaskSelectable)
+            .every((task) => selectedTaskIds.has(task.id))
+            ? 'Desmarcar todas'
+            : 'Selecionar todas'}
+        </Button>
+
+        {selectedTaskIds.size > 0 && (
+          <>
+            <Button
+              onClick={() => void handleCompleteSelected()}
+              loading={completingSelected}
+              disabled={completingSelected}
+            >
+              Concluir selecionadas ({selectedTaskIds.size})
+            </Button>
+            <Button
+              variant="secondary"
+              onClick={() => setSelectedTaskIds(new Set())}
+              disabled={completingSelected}
+            >
+              Limpar seleção
+            </Button>
+          </>
+        )}
+      </div>
+
       {loading && <Message type="info">A carregar tarefas e prestadores...</Message>}
       {listError && <Message type="error">{listError} <button type="button" onClick={() => void refresh()}>Tentar novamente</button></Message>}
       {viewMode === 'list' && !loading && !listError && tasks.length === 0 && (
@@ -375,17 +533,27 @@ export function TasksPage({ onSessionExpired }: Props) {
           
           <div>
             {viewMode === 'list' ? (
-              <TaskListView
-                tasks={tasks}
-                selectedId={selectedId}
-                onOpenTask={(id) => void openTask(id)}
-                dateLabel={dateLabel}
-                statusLabel={statusLabel}
-                typeLabel={typeLabel}
-              />
+              tasksInCurrentList.length === 0 ? (
+                <Message type="info">
+                  {tasks.length > 0
+                    ? 'As tarefas que precisam de revisão aparecem apenas em “Atribuições a rever”.'
+                    : 'Não há tarefas para mostrar.'}
+                </Message>
+              ) : (
+                <TaskListView
+                  tasks={tasksInCurrentList}
+                  selectedId={selectedId}
+                  onOpenTask={(id) => void openTask(id)}
+                  dateLabel={dateLabel}
+                  statusLabel={statusLabel}
+                  typeLabel={typeLabel}
+                  selectedTaskIds={selectedTaskIds}
+                  onToggleTaskSelection={toggleTaskSelection}
+                />
+              )
             ) : (
               <TaskWeekAgenda
-                tasks={tasks}
+                tasks={tasksInCurrentList}
                 weekStart={weekRange.start}
                 selectedId={selectedId}
                 onOpenTask={(id) => void openTask(id)}
@@ -393,6 +561,8 @@ export function TasksPage({ onSessionExpired }: Props) {
                 dateLabel={dateLabel}
                 statusLabel={statusLabel}
                 typeLabel={typeLabel}
+                selectedTaskIds={selectedTaskIds}
+                onToggleTaskSelection={toggleTaskSelection}
               />
             )}
           </div>
