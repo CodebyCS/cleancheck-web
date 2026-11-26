@@ -73,3 +73,90 @@
   color: var(--text-heading);
   font-weight: var(--weight-semibold);
 }
+
+.review-table .review-action {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.entry-amounts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 0 4px;
+}
+
+.entry-amounts div {
+  flex: 1 1 120px;
+  padding: 8px 12px;
+  border: 1px solid var(--brand-border);
+  border-radius: 8px;
+}
+
+.entry-amounts span {
+  display: block;
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+}
+
+.entry-amounts strong {
+  color: var(--text-heading);
+  font-variant-numeric: tabular-nums;
+}
+
+.entry-amounts .entry-amount-final {
+  background: var(--brand-soft);
+}
+
+.entry-section-title {
+  margin: 16px 0 8px;
+  color: var(--text-heading);
+  font-size: var(--text-base);
+}
+
+.entry-adjustments {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.entry-adjustments li {
+  padding: 8px 12px;
+  border-left: 3px solid var(--brand-border);
+  background: #f8fbfb;
+}
+
+.entry-adjustment-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: baseline;
+  justify-content: space-between;
+  font-size: var(--text-sm);
+}
+
+.entry-adjustment-head span {
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+}
+
+.entry-adjustment-down {
+  color: var(--text-warning);
+}
+
+.entry-adjustment-up {
+  color: var(--text-success);
+}
+
+.entry-adjustments p {
+  margin: 4px 0 0;
+  color: var(--text-body);
+  font-size: var(--text-sm);
+}
+
+/* Aligns the form with the rest of the detail (forms have their own padding by default). */
+.entry-adjustment-form {
+  padding: 0;
+}

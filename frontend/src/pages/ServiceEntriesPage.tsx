@@ -12,6 +12,8 @@ import { listServiceEntries, retryServiceEntry } from '../services/serviceEntrie
 import type { ServiceEntryReview } from '../services/serviceEntries'
 import { listServiceProviders } from '../services/serviceProviders'
 import type { ServiceProvider } from '../services/serviceProviders'
+import { ServiceEntryDetail } from './ServiceEntryDetail'
+import { formatAmount, formatDate, formatSigned } from './serviceEntryFormat'
 import './records.css'
 import './ServiceEntriesPage.css'
 
@@ -22,30 +24,6 @@ const emptyReview: ServiceEntryReview = { entries: [], totals: [], tasksWithoutE
 function currentMonth(): string {
   const now = new Date()
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
-}
-
-function formatDate(value: string): string {
-  const [year, month, day] = value.split('-')
-  return year && month && day ? `${day}/${month}/${year}` : value
-}
-
-function formatAmount(amount: string, currency: string): string {
-  const value = Number(amount)
-  if (Number.isNaN(value)) return `${amount} ${currency}`
-
-  try {
-    return new Intl.NumberFormat('pt-PT', { style: 'currency', currency }).format(value)
-  } catch {
-    return `${value.toFixed(2).replace('.', ',')} ${currency}`
-  }
-}
-
-// Adjustments always show their sign, so a reduction is never read as a charge.
-function formatSigned(amount: string, currency: string): string {
-  const value = Number(amount)
-  if (Number.isNaN(value) || value === 0) return formatAmount(amount, currency)
-
-  return `${value > 0 ? '+' : '-'}${formatAmount(String(Math.abs(value)), currency)}`
 }
 
 export function ServiceEntriesPage() {
@@ -61,6 +39,7 @@ export function ServiceEntriesPage() {
   const [feedback, setFeedback] = useState<Feedback>(null)
   const [retrying, setRetrying] = useState<number | null>(null)
   const [reloadKey, setReloadKey] = useState(0)
+  const [selectedId, setSelectedId] = useState<number | null>(null)
 
   useEffect(() => {
     let active = true
@@ -256,6 +235,7 @@ export function ServiceEntriesPage() {
                       <th scope="col" className="rates-amount">Original</th>
                       <th scope="col" className="rates-amount">Ajustes</th>
                       <th scope="col" className="rates-amount">Final</th>
+                      <th scope="col" aria-label="Ações" />
                     </tr>
                   </thead>
                   <tbody>
@@ -273,6 +253,15 @@ export function ServiceEntriesPage() {
                             {adjusted ? formatSigned(entry.adjustments_total, entry.currency) : '—'}
                           </td>
                           <td className="rates-amount review-final">{formatAmount(entry.final_amount, entry.currency)}</td>
+                          <td className="review-action">
+                            <Button
+                              variant="secondary"
+                              onClick={() => setSelectedId(entry.id)}
+                              aria-label={`Ver lançamento ${entry.id}`}
+                            >
+                              Ver
+                            </Button>
+                          </td>
                         </tr>
                       )
                     })}
@@ -288,6 +277,10 @@ export function ServiceEntriesPage() {
             </>
           )}
         </>
+      )}
+
+      {selectedId !== null && (
+        <ServiceEntryDetail entryId={selectedId} onClose={() => setSelectedId(null)} onChanged={reload} />
       )}
     </section>
   )
