@@ -16,6 +16,8 @@ export type TaskSummary = {
   completed_by: string | null
   updated_at: string
   deleted_at: string | null
+  evidence_accepted_at: string | null
+  evidence_accepted_by: string | null
 }
 
 export type TaskDetail = TaskSummary & {

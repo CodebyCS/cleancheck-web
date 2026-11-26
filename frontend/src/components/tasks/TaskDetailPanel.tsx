@@ -107,6 +107,8 @@ export function TaskDetailPanel({
       }
     }, [taskId])
 
+    const completionNotYetAvailable = detail !== null && Date.now() < Date.parse(detail.scheduled_start_at)
+
   return (
     <div className="task-detail">
       <h3>Detalhe</h3>
@@ -131,7 +133,10 @@ export function TaskDetailPanel({
           <dl className="task-fields">
             <dt>ID da tarefa</dt>
             <dd>#{detail.id}</dd>
-            
+
+            <dt>Reserva</dt>
+            <dd>#{detail.booking_id}</dd>
+
             <dt>Imóvel</dt>
             <dd>{detail.property ?? 'Imóvel sem nome'}</dd>
 
@@ -161,6 +166,17 @@ export function TaskDetailPanel({
 
             <dt>Conclusão real</dt>
             <dd>{dateLabel(detail.completed_at)}</dd>
+
+            {detail.evidence_accepted_at && (
+              <>
+                <dt>Aceite sem evidência</dt>
+                <dd>
+                  {detail.evidence_accepted_by
+                    ? `Aceito por ${detail.evidence_accepted_by} em ${dateLabel(detail.evidence_accepted_at)}`
+                    : dateLabel(detail.evidence_accepted_at)}
+                </dd>
+              </>
+            )}
 
             <dt>Registo atualizado em</dt>
             <dd>{dateLabel(detail.updated_at)}</dd>
@@ -205,15 +221,22 @@ export function TaskDetailPanel({
           {taskActionError && <Message type="error">{taskActionError}</Message>}
 
           <div className="task-actions">
-            {detail.status === 'in_progress' && !detail.deleted_at && (
+            {(detail.status === 'pending' || detail.status === 'in_progress') && !detail.deleted_at &&(
               <Button
                 type="button"
+                className='m-1'
                 loading={taskAction === 'complete'}
-                disabled={taskAction !== null}
+                disabled={completionNotYetAvailable || taskAction !== null}
                 onClick={() => onTaskAction('complete')}
               >
-                Concluir tarefa
+                {completionNotYetAvailable ? 'Disponível no início da janela' : 'Concluir tarefa'}
               </Button>
+            )}
+
+            {completionNotYetAvailable && (
+              <p className="task-limitation">
+                A conclusão ficará disponível em {dateLabel(detail.scheduled_start_at)}.
+              </p>
             )}
 
             {detail.status === 'pending' && !detail.deleted_at && (
