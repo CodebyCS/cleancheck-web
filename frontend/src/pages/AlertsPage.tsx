@@ -47,6 +47,16 @@ function taskWindow(alert: TaskAlert): string {
   return end ? `${formatDateTime(start)} → ${formatDateTime(end)}` : `${formatDateTime(start)} (sem check-in seguinte)`
 }
 
+type Connection = 'online' | 'offline' | 'restored'
+
+// No response at all, or a gateway saying the API is down: the server is unreachable,
+// not refusing the request. Anything else is a real API error and is shown as such.
+function isConnectionError(err: unknown): boolean {
+  if (!axios.isAxiosError(err)) return false
+  if (!err.response) return true
+  return [502, 503, 504].includes(err.response.status)
+}
+
 export function AlertsPage({ onSessionExpired, onAlertsChanged }: AlertsPageProps) {
   const [status, setStatus] = useState<AlertStatus>('active')
   const [priority, setPriority] = useState<AlertPriority | null>(null)
@@ -60,6 +70,7 @@ export function AlertsPage({ onSessionExpired, onAlertsChanged }: AlertsPageProp
   const [checkedAt, setCheckedAt] = useState<Date | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [connection, setConnection] = useState<Connection>('online')
   const [success, setSuccess] = useState('')
   const [resolving, setResolving] = useState<TaskAlert | null>(null)
 
@@ -88,6 +99,8 @@ export function AlertsPage({ onSessionExpired, onAlertsChanged }: AlertsPageProp
         setCounts(result.counts)
         setCheckedAt(new Date())
         setError('')
+        // The first check after a failure confirms the reconnection; the next one hides it.
+        setConnection((current) => (current === 'offline' ? 'restored' : 'online'))
       })
       .catch((err: unknown) => {
         if (!active) return
@@ -96,6 +109,10 @@ export function AlertsPage({ onSessionExpired, onAlertsChanged }: AlertsPageProp
           return
         }
         // Keep the last list on screen: a failed poll must not hide alerts.
+        if (isConnectionError(err)) {
+          setConnection('offline')
+          return
+        }
         setError(errorMessage(err))
       })
       .finally(() => {
@@ -201,10 +218,25 @@ export function AlertsPage({ onSessionExpired, onAlertsChanged }: AlertsPageProp
         </label>
       </div>
 
+      {connection === 'offline' && (
+        <Message type="error">
+          Sem ligação ao servidor.{' '}
+          {checkedAt
+            ? `A mostrar os alertas verificados às ${formatClock(checkedAt)}, que podem estar desatualizados.`
+            : 'Ainda não foi possível carregar os alertas.'}{' '}
+          Nova tentativa automática a cada 30 segundos.
+        </Message>
+      )}
+      {connection === 'restored' && (
+        <Message type="success">
+          Ligação restabelecida. Lista atualizada às {checkedAt ? formatClock(checkedAt) : '—'}
+          {newIds.size > 0 && ` · ${newIds.size === 1 ? '1 alerta novo' : `${newIds.size} alertas novos`} desde a falha`}.
+        </Message>
+      )}
       {error && <Message type="error">{error}</Message>}
       {success && <Message type="success">{success}</Message>}
 
-      {!loading && !error && alerts.length === 0 && (
+      {!loading && !error && connection !== 'offline' && alerts.length === 0 && (
         <div className="alerts-empty" role="status">
           <h2>{status === 'active' ? 'Nenhum alerta ativo' : 'Ainda não há alertas resolvidos'}</h2>
           <p>
