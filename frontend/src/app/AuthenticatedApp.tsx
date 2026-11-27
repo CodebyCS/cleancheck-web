@@ -14,6 +14,7 @@ import { NoticesPage } from '../pages/NoticesPage'
 import { AlertsPage } from '../pages/AlertsPage'
 import { useTaskAlertCounts } from '../hooks/useTaskAlertCounts'
 import { RatesPage } from '../pages/RatesPage'
+import { MonthlyReportPage } from '../pages/MonthlyReportPage'
 import { ServiceEntriesPage } from '../pages/ServiceEntriesPage'
 import { Button } from '../components/Button'
 
@@ -194,6 +195,7 @@ export function AuthenticatedApp({
           {page === 'notices' && <NoticesPage />}
           {page === 'rates' && <RatesPage />}
           {page === 'serviceEntries' && <ServiceEntriesPage />}
+          {page === 'monthlyReport' && <MonthlyReportPage />}
         </main>
       </div>
     </div>
