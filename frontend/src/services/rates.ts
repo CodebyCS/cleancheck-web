@@ -48,6 +48,7 @@ export async function listRates(filters: RateFilters = {}): Promise<Rate[]> {
 }
 
 export async function createRate(input: RateInput): Promise<Rate> {
+  await api.get('/sanctum/csrf-cookie')
   const response = await api.post<{ data: Rate }>('/api/rates', input)
   return response.data.data
 }

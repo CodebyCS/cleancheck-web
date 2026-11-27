@@ -8,6 +8,7 @@ export type Page =
   | 'tasks'
   | 'notices'
   | 'rates'
+  | 'serviceEntries'
 
 export const pageTitles: Record<Page, string> = {
   dashboard: 'Visão geral',
@@ -19,4 +20,5 @@ export const pageTitles: Record<Page, string> = {
   icalSources: 'Fontes iCal',
   notices: 'Avisos',
   rates: 'Tarifas',
+  serviceEntries: 'Conferência',
 }
