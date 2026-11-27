@@ -101,6 +101,7 @@ export async function getServiceEntry(id: number): Promise<ServiceEntry> {
 }
 
 export async function createAdjustment(entryId: number, input: AdjustmentInput): Promise<AdjustmentResult> {
+  await api.get('/sanctum/csrf-cookie')
   const response = await api.post<{ data: ServiceEntryAdjustment; meta: { final_amount: string } }>(
     `/api/service-entries/${entryId}/adjustments`,
     input,
@@ -111,6 +112,7 @@ export async function createAdjustment(entryId: number, input: AdjustmentInput):
 
 // Retries the entry of a completed task, e.g. after creating the missing rate.
 export async function retryServiceEntry(taskId: number): Promise<ServiceEntry> {
+  await api.get('/sanctum/csrf-cookie')
   const response = await api.post<{ data: ServiceEntry }>(`/api/tasks/${taskId}/service-entry`)
   return response.data.data
 }
