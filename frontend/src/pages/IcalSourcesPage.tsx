@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react'
+import axios from 'axios'
+import { useEffect, useRef, useState } from 'react'
 import { errorMessage } from '../api'
 import { Button } from '../components/Button'
 import { Message } from '../components/Message'
@@ -7,6 +8,7 @@ import { SourceForm } from '../components/ical/SourceForm'
 import { SyncStatus } from '../components/ical/SyncStatus'
 import '../components/ical/ical.css'
 import {
+  RUN_INTERRUPTED_AFTER_MS,
   listBookingSources,
   maskSourceUrl,
   syncBookingSource,
@@ -19,12 +21,27 @@ import { icalErrorMessage } from '../services/reservations'
 import type { IcalImportResult } from '../services/reservations'
 import { fieldErrors } from '../services/validation'
 import { BookingList } from '../components/ical/BookingList'
+import { usePollingTick } from '../hooks/usePollingTick'
 import './records.css'
 
 
-type Feedback = { type: 'error' | 'success'; text: string } | null
+type Feedback = { type: 'error' | 'success' | 'info'; text: string } | null
 type FormTarget = { source: BookingSource | null } | null
 type Busy = { id: number; action: 'sync' | 'toggle' } | null
+
+// While a sync is in progress (button or scheduler), the status is checked every 10 s.
+const SYNC_STATUS_POLL_MS = 10_000
+
+// Running, and not yet old enough to count as interrupted.
+function isSyncing(source: BookingSource, checkedAt: number): boolean {
+  const run = source.lastSync
+  return run?.status === 'running' && checkedAt - Date.parse(run.startedAt) <= RUN_INTERRUPTED_AFTER_MS
+}
+
+// The browser stopped waiting, but the server may still be syncing.
+function isClientTimeout(error: unknown): boolean {
+  return axios.isAxiosError(error) && (error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT')
+}
 
 export function IcalSourcesPage() {
   const [properties, setProperties] = useState<Property[]>([])
@@ -41,6 +58,12 @@ export function IcalSourcesPage() {
   const [result, setResult] = useState<IcalImportResult | null>(null)
   const [bookingsKey, setBookingsKey] = useState(0)
   const [checkedAt, setCheckedAt] = useState(0)
+  // Sources that were running on the last check, to notice when a run finishes.
+  const runningIds = useRef<number[]>([])
+
+  // Polls only while something is running and no action of this page is in progress.
+  const followingSync = busy === null && sources.some((source) => isSyncing(source, checkedAt))
+  const pollTick = usePollingTick(SYNC_STATUS_POLL_MS, followingSync)
 
   useEffect(() => {
     let active = true
@@ -69,6 +92,16 @@ export function IcalSourcesPage() {
     listBookingSources(Number(propertyId))
       .then((items) => {
         if (!active) return
+        const running = items
+          .filter((item) => item.lastSync?.status === 'running')
+          .map((item) => item.id)
+
+        // A run that was in progress has finished: its bookings may have changed.
+        if (runningIds.current.some((id) => !running.includes(id))) {
+          setBookingsKey((key) => key + 1)
+        }
+
+        runningIds.current = running
         setSources(items)
         setSourcesError('')
         setCheckedAt(Date.now())
@@ -83,7 +116,7 @@ export function IcalSourcesPage() {
     return () => {
       active = false
     }
-  }, [propertyId, reloadKey])
+  }, [propertyId, reloadKey, pollTick])
 
   function reloadSources() {
     setLoadingSources(true)
@@ -91,6 +124,7 @@ export function IcalSourcesPage() {
   }
 
   function handlePropertyChange(value: string) {
+    runningIds.current = []
     setPropertyId(value)
     setSources([])
     setSourcesError('')
@@ -115,7 +149,14 @@ export function IcalSourcesPage() {
       setResult(await syncBookingSource(source.id))
       setFeedback({ type: 'success', text: 'Sincronização concluída.' })
     } catch (error) {
-      setFeedback({ type: 'error', text: icalErrorMessage(error) })
+      setFeedback(
+        isClientTimeout(error)
+          ? {
+              type: 'info',
+              text: 'A sincronização está a demorar mais do que o habitual. Continua no servidor e o estado abaixo atualiza sozinho.',
+            }
+          : { type: 'error', text: icalErrorMessage(error) },
+      )
     } finally {
       setBusy(null)
       // Success or failure, the attempt is recorded and the status must be refreshed.
@@ -190,6 +231,9 @@ export function IcalSourcesPage() {
       </div>
 
       {feedback && <Message type={feedback.type}>{feedback.text}</Message>}
+      {followingSync && (
+        <Message type="info">A acompanhar a sincronização em curso. O estado atualiza a cada 10 segundos.</Message>
+      )}
 
       {loadingProperties ? (
         <Message type="info">A carregar imóveis...</Message>
