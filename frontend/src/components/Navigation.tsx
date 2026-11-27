@@ -21,6 +21,7 @@ const items: { page: Page; icon: string }[] = [
   { page: 'notices', icon: '♧' },
   { page: 'rates', icon: '€' },
   { page: 'serviceEntries', icon: '☰' },
+  { page: 'monthlyReport', icon: '▥' },
 ]
 
 export function Navigation({

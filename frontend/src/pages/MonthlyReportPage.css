@@ -1,0 +1,62 @@
+.report-settlement-note {
+  margin: 0 0 16px;
+  padding: 10px 14px;
+  border-left: 3px solid var(--brand-border);
+  background: #f8fbfb;
+  color: var(--text-body);
+  font-size: var(--text-sm);
+}
+
+.report-providers {
+  display: grid;
+  /* minmax(0, 1fr) lets the detail table scroll inside the card on small screens. */
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+}
+
+.report-provider {
+  padding: 12px 16px;
+  border: 1px solid var(--brand-border);
+  border-radius: 10px;
+  background: var(--surface-card);
+}
+
+.report-provider-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.report-provider-head h3 {
+  margin: 0 0 2px;
+  color: var(--text-heading);
+  font-size: var(--text-base);
+}
+
+.report-provider-total {
+  display: block;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+.report-provider-total strong {
+  color: var(--text-heading);
+  font-variant-numeric: tabular-nums;
+}
+
+.report-provider .rates-table-wrapper {
+  margin-top: 12px;
+}
+
+.report-total-row th,
+.report-total-row td {
+  border-top: 2px solid var(--brand-border);
+  font-weight: var(--weight-semibold);
+}
+
+.report-total-row th {
+  background: none;
+  text-align: left;
+}

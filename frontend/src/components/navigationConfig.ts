@@ -9,6 +9,7 @@ export type Page =
   | 'notices'
   | 'rates'
   | 'serviceEntries'
+  | 'monthlyReport'
 
 export const pageTitles: Record<Page, string> = {
   dashboard: 'Visão geral',
@@ -21,4 +22,5 @@ export const pageTitles: Record<Page, string> = {
   notices: 'Avisos',
   rates: 'Tarifas',
   serviceEntries: 'Conferência',
+  monthlyReport: 'Relatório mensal',
 }
