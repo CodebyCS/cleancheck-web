@@ -9,6 +9,7 @@ type Props = {
   refreshToken: unknown
   onOpenTask: (taskId: number) => void
   onSessionExpired: () => void
+  onTaskIdsChange: (taskIds: number[]) => void
 }
 
 function warningLabel(warning: AssignmentWarning): string {
@@ -48,7 +49,7 @@ function dateLabel(value: string | null): string {
  * Tasks that need a decision: without provider, with an inactive provider or with a schedule conflict.
  * Nothing is assigned here; the task is opened so staff can change the provider manually.
  */
-export function AssignmentWarnings({ refreshToken, onOpenTask, onSessionExpired }: Props) {
+export function AssignmentWarnings({ refreshToken, onOpenTask, onSessionExpired, onTaskIdsChange }: Props) {
   const [items, setItems] = useState<TaskAssignmentWarning[]>([])
   const [error, setError] = useState('')
   const [expanded, setExpanded] = useState(true)
@@ -66,6 +67,7 @@ export function AssignmentWarnings({ refreshToken, onOpenTask, onSessionExpired 
       .then((data) => {
         if (!active) return
         setItems(data)
+        onTaskIdsChange(data.map((item) => item.task_id))
         setError('')
       })
       .catch((requestError: unknown) => {
@@ -84,13 +86,14 @@ export function AssignmentWarnings({ refreshToken, onOpenTask, onSessionExpired 
         }
 
         setItems([])
+        onTaskIdsChange([])
         setError(status === 404 ? '' : 'Não foi possível carregar os avisos de atribuição.')
       })
 
     return () => {
       active = false
     }
-  }, [refreshToken])
+  }, [refreshToken, onTaskIdsChange])
 
   if (error) {
     return <p className="assignment-warnings-error" role="status">{error}</p>

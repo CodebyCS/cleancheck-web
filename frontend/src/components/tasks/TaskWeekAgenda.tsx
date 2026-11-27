@@ -14,6 +14,8 @@ type Props = {
   dateLabel: (value: string | null) => string
   statusLabel: (status: string) => string
   typeLabel: (type: string) => string
+  selectedTaskIds: Set<number>
+  onToggleTaskSelection: (id: number) => void
 }
 
 function localDateKey(value: string): string | null {
@@ -37,6 +39,8 @@ export function TaskWeekAgenda({
   dateLabel,
   statusLabel,
   typeLabel,
+  selectedTaskIds,
+  onToggleTaskSelection,
 }: Props) {
   const weekDays: WeekDay[] = Array.from({ length: 7 }, (_, index) => {
     const date = new Date(weekStart)
@@ -88,45 +92,58 @@ export function TaskWeekAgenda({
                   <ul className="tasks-list">
                     {dayTasks.map((task) => (
                       <li key={task.id}>
-                        <button
-                          type="button"
-                          className={[
-                            'task-item',
-                            'task-week-item',
-                            task.is_overdue ? 'task-overdue' : '',
-                            task.missing_evidence ? 'task-missing-video' : '',
-                          ]
-                            .filter(Boolean)
-                            .join(' ')}
-                          aria-current={selectedId === task.id ? 'true' : undefined}
-                          onClick={() => onOpenTask(task.id)}
-                        >
-                          <strong>
-                            {timeLabel(task.scheduled_start_at)} ·{' '}
-                            {task.property ?? 'Imóvel sem nome'}
-                          </strong>
-
-                          <span>{typeLabel(task.type)}</span>
-                          <span>Estado: {statusLabel(task.status)}</span>
-
-                          {task.missing_evidence && (
-                            <span className="task-missing-video-label">Falta evidência</span>
+                        <div className="task-selectable-card">
+                          {(task.status === 'pending' || task.status === 'in_progress' || task.status === 'completed' && task.missing_evidence) && (
+                            <label className='task-select-control'>
+                              <input
+                                type="checkbox"
+                                checked={selectedTaskIds.has(task.id)}
+                                onChange={() => onToggleTaskSelection(task.id)}
+                                aria-label={`Selecionar tarefa #${task.id}`}
+                              />
+                            </label>
                           )}
+                          <button
+                            type="button"
+                            className={[
+                              'task-item',
+                              'task-week-item',
+                              task.is_overdue ? 'task-overdue' : '',
+                              task.missing_evidence ? 'task-missing-video' : '',
+                            ]
+                              .filter(Boolean)
+                              .join(' ')}
+                            aria-current={selectedId === task.id ? 'true' : undefined}
+                            onClick={() => onOpenTask(task.id)}
+                          >
+                            <strong>
+                              {timeLabel(task.scheduled_start_at)} ·{' '}
+                              {task.property ?? 'Imóvel sem nome'}
+                            </strong>
 
-                          {task.is_overdue && (
-                            <span className="task-overdue-label">Em atraso</span>
-                          )}
+                            <span>{typeLabel(task.type)}</span>
+                            <span>Tarefa #{task.id}</span>
+                            <span>Estado: {statusLabel(task.status)}</span>
 
-                          <span>Reserva #{task.booking_id}</span>
-                          <span>Prestador: {task.service_provider ?? 'Não atribuído'}</span>
+                            {task.missing_evidence && (
+                              <span className="task-missing-video-label">Falta evidência</span>
+                            )}
 
-                          {task.completed_at && (
-                            <span>
-                              Concluída em {dateLabel(task.completed_at)}
-                              {task.completed_by ? ` por ${task.completed_by}` : ''}
-                            </span>
-                          )}
-                        </button>
+                            {task.is_overdue && (
+                              <span className="task-overdue-label">Em atraso</span>
+                            )}
+
+                            <span>Reserva #{task.booking_id}</span>
+                            <span>Prestador: {task.service_provider ?? 'Não atribuído'}</span>
+
+                            {task.completed_at && (
+                              <span>
+                                Concluída em {dateLabel(task.completed_at)}
+                                {task.completed_by ? ` por ${task.completed_by}` : ''}
+                              </span>
+                            )}
+                          </button>
+                        </div>
                       </li>
                     ))}
                   </ul>
