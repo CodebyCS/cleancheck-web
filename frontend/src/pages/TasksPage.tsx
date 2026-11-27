@@ -4,6 +4,8 @@ import axios from 'axios'
 import { errorMessage } from '../api'
 import { Button } from '../components/Button'
 import { Message } from '../components/Message'
+import { listProperties } from '../services/properties'
+import type { Property } from '../services/properties'
 import { listActiveServiceProviders } from '../services/serviceProviders'
 import type { ServiceProvider } from '../services/serviceProviders'
 import { assignTask, getTask, listTasks, cancelTask, completeTask, restoreTask, completeTasks } from '../services/tasks'
@@ -83,6 +85,9 @@ export function TasksPage({ onSessionExpired }: Props) {
   const [tasks, setTasks] = useState<TaskSummary[]>([])
   const [assignmentWarningTaskIds, setAssignmentWarningTaskIds] = useState<number[]>([])
   const [providers, setProviders] = useState<ServiceProvider[]>([])
+  const [properties, setProperties] = useState<Property[]>([])
+  const [filterProviderId, setFilterProviderId] = useState('')
+  const [filterPropertyId, setFilterPropertyId] = useState('')
   const [loading, setLoading] = useState(true)
   const [listError, setListError] = useState('')
   const [selectedId, setSelectedId] = useState<number | null>(null)
@@ -114,22 +119,26 @@ export function TasksPage({ onSessionExpired }: Props) {
     setLoading(true)
     setListError('')
     try {
-      const [nextTasks, nextProviders] = await Promise.all([
+      const [nextTasks, nextProviders, nextProperties] = await Promise.all([
         listTasks({
           showDeleted,
           overdue: overdueOnly,
+          propertyId: filterPropertyId ? Number(filterPropertyId) : undefined,
           ...(viewMode === 'week' ? { from: weekRange.from, to: weekRange.to } : {}),
         }),
         listActiveServiceProviders(),
+        listProperties(),
       ])
+
       setTasks(nextTasks)
       setProviders(nextProviders)
+      setProperties(nextProperties)
     } catch (error) {
       setListError(requestError(error, onSessionExpired))
     } finally {
       setLoading(false)
     }
-  }, [onSessionExpired, showDeleted, overdueOnly, viewMode, weekRange.from, weekRange.to])
+  }, [onSessionExpired, showDeleted, overdueOnly, viewMode, weekRange.from, weekRange.to, filterPropertyId])
 
   useEffect(() => {
     const timer = window.setTimeout(() => { void refresh() }, 0)
@@ -264,9 +273,32 @@ export function TasksPage({ onSessionExpired }: Props) {
 
   const taskIdsInAssignmentReview = new Set(assignmentWarningTaskIds)
 
-  const completedTasks = tasks.filter((task) => task.status === 'completed')
+  const providerOptionsById = new Map(
+  providers.map((provider) => [provider.id, provider.name]),
+  )
 
-  const tasksWithinDashboardWindow = tasks.filter((task) => {
+  tasks.forEach((task) => {
+    if (task.service_provider_id !== null && !providerOptionsById.has(task.service_provider_id)) {
+      providerOptionsById.set(
+        task.service_provider_id,
+        task.service_provider ?? `Prestador #${task.service_provider_id}`,
+      )
+    }
+  })
+
+  const providerOptions = [...providerOptionsById]
+    .map(([id, name]) => ({ id, name }))
+    .sort((left, right) => left.name.localeCompare(right.name, 'pt'))
+
+  const tasksMatchingFilters = tasks.filter((task) => {
+    if (!filterProviderId) return true
+
+    return task.service_provider_id === Number(filterProviderId)
+  })
+
+  const completedTasks = tasksMatchingFilters.filter((task) => task.status === 'completed')
+
+  const tasksWithinDashboardWindow = tasksMatchingFilters.filter((task) => {
     if (task.status !== 'completed') return true
 
     if (task.missing_evidence) return true
@@ -423,6 +455,38 @@ export function TasksPage({ onSessionExpired }: Props) {
               onChange={(event) => setShowDeleted(event.target.checked)}
             />
             <span>Mostrar apagadas</span>
+          </label>
+
+          <label className="grid min-w-40 gap-1.5 text-xs text-slate-600">
+            <span>Prestador atual</span>
+            <select
+              className='min-h-9 rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-sm text-slate-700'
+              value={filterProviderId}
+              onChange={(event) => setFilterProviderId(event.target.value)}
+            >
+              <option value="">Todos os prestadores</option>
+              {providerOptions.map((provider) => (
+                <option key={provider.id} value={provider.id}>
+                  {provider.name}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="grid min-w-40 gap-1.5 text-xs text-slate-600">
+            <span>Imóvel</span>
+            <select
+              className='min-h-9 rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-sm text-slate-700'
+              value={filterPropertyId}
+              onChange={(event) => setFilterPropertyId(event.target.value)}
+            >
+              <option value="">Todos os imóveis</option>
+              {properties.map((property) => (
+                <option key={property.id} value={property.id}>
+                  {property.name} — {property.address}
+                </option>
+              ))}
+            </select>
           </label>
         </fieldset>
 
