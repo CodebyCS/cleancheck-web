@@ -195,7 +195,7 @@ export function AuthenticatedApp({
           )}
           {page === 'notices' && <NoticesPage />}
           {page === 'rates' && <RatesPage />}
-          {page === 'checklists' && <ChecklistsPage canEdit={user.role === 'admin'} />}
+          {page === 'checklists' && <ChecklistsPage />}
           {page === 'serviceEntries' && <ServiceEntriesPage />}
           {page === 'monthlyReport' && <MonthlyReportPage />}
         </main>

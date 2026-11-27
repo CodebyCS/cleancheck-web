@@ -10,12 +10,7 @@ import { ChecklistForm } from './ChecklistForm'
 import './records.css'
 import './ChecklistsPage.css'
 
-type ChecklistsPageProps = {
-  // Only the admin changes checklists; the supervisor sees the one in force.
-  canEdit: boolean
-}
-
-export function ChecklistsPage({ canEdit }: ChecklistsPageProps) {
+export function ChecklistsPage() {
   const [checklists, setChecklists] = useState<Partial<Record<string, Checklist>>>({})
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState('')
@@ -68,7 +63,6 @@ export function ChecklistsPage({ canEdit }: ChecklistsPageProps) {
       <p className="form-hint">
         O prestador marca estes itens um a um durante a tarefa. Cada tarefa fica com a checklist em vigor quando foi
         criada, por isso as alterações não mudam as tarefas já existentes.
-        {!canEdit && ' Só o administrador pode alterar as checklists.'}
       </p>
 
       {success && <Message type="success">{success}</Message>}
@@ -97,17 +91,15 @@ export function ChecklistsPage({ canEdit }: ChecklistsPageProps) {
                       </p>
                     )}
                   </div>
-                  {canEdit && (
-                    <Button
-                      variant={checklist ? 'secondary' : 'primary'}
-                      onClick={() => {
-                        setSuccess('')
-                        setEditing(taskType)
-                      }}
-                    >
-                      {checklist ? 'Alterar' : 'Criar'}
-                    </Button>
-                  )}
+                  <Button
+                    variant={checklist ? 'secondary' : 'primary'}
+                    onClick={() => {
+                      setSuccess('')
+                      setEditing(taskType)
+                    }}
+                  >
+                    {checklist ? 'Alterar' : 'Criar'}
+                  </Button>
                 </header>
 
                 {checklist ? (
