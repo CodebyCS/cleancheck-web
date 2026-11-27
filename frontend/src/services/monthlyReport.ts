@@ -56,6 +56,9 @@ export async function getMonthlyReport(filters: MonthlyReportFilters): Promise<M
   return response.data.data
 }
 
+// Time to keep the temporary download URL alive.
+const DOWNLOAD_URL_LIFETIME_MS = 60_000
+
 // Downloads the CSV with the session cookie (a plain link would not send the auth headers).
 export async function downloadMonthlyReportCsv(filters: MonthlyReportFilters): Promise<void> {
   const response = await api.get<Blob>('/api/reports/monthly/export', {
@@ -70,5 +73,6 @@ export async function downloadMonthlyReportCsv(filters: MonthlyReportFilters): P
   document.body.appendChild(link)
   link.click()
   link.remove()
-  URL.revokeObjectURL(url)
+  // Some browsers start the download asynchronously, so the URL is released later, not right after the click.
+  window.setTimeout(() => URL.revokeObjectURL(url), DOWNLOAD_URL_LIFETIME_MS)
 }
