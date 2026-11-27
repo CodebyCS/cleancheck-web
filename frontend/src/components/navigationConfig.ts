@@ -8,6 +8,7 @@ export type Page =
   | 'tasks'
   | 'notices'
   | 'rates'
+  | 'checklists'
   | 'serviceEntries'
   | 'monthlyReport'
 
@@ -21,6 +22,7 @@ export const pageTitles: Record<Page, string> = {
   icalSources: 'Fontes iCal',
   notices: 'Avisos',
   rates: 'Tarifas',
+  checklists: 'Checklists',
   serviceEntries: 'Conferência',
   monthlyReport: 'Relatório mensal',
 }
